@@ -225,6 +225,14 @@
                     </button>
                 </div>
 
+                <!-- Tutorial Button -->
+                <button onclick="toggleTutorialModal()" class="glass-card px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:text-white hover:border-purple-500/40 flex items-center gap-1.5 transition-all" title="Ver Tutorial e Guia do Usuário">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <span class="hidden sm:inline">Tutorial</span>
+                </button>
+
                 <!-- Settings Toggle Button -->
                 <button onclick="toggleSettingsModal()" class="glass-card px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:text-white hover:border-indigo-500/40 flex items-center gap-1.5 transition-all" title="Opções de Minificação e Formatação">
                     <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,11 +384,13 @@
                             <span>Beautify</span>
                         </button>
 
-                        <button id="studioConvertBtn" onclick="handleSpecialConversion(1)" class="btn-action-alt py-2.5 px-3 rounded-xl font-semibold text-xs text-white flex items-center justify-center gap-1.5 shadow-md" title="Conversão especial de formato (ex: JSON ⇄ YAML)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                            </svg>
-                            <span id="studioConvertBtnText">JSON ⇄ YAML</span>
+                        <button id="studioConvertBtn" onclick="handleSpecialConversion(1)" class="btn-action-alt py-2.5 px-3 rounded-xl font-semibold text-xs text-white flex items-center justify-center gap-1.5 shadow-md transition-all" title="Remove chamadas de console.log e debugger mantendo a legibilidade">
+                            <span id="studioConvertBtnIcon">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </span>
+                            <span id="studioConvertBtnText">Limpar Logs & Debug</span>
                         </button>
 
                         <button onclick="openDiffView()" class="glass-card hover:bg-white/10 text-gray-200 py-2.5 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
@@ -721,6 +731,35 @@
 
     </main>
 
+    <!-- Rodapé Padrão 4U -->
+    <footer class="border-t border-white/10 mt-16 py-8 text-xs text-gray-400 bg-[#080c14]/90 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-gray-300">Processamento 100% no cliente • Zero dados enviados para a nuvem</span>
+            </div>
+            <div class="text-center">
+                © 2026 <strong>4U Code Optimizer</strong> — Desenvolvido por <a href="https://4u.ia.br" target="_blank" class="text-indigo-400 hover:text-indigo-300 font-semibold underline decoration-indigo-500/30 transition-colors">4U.IA.BR</a>. Todos os direitos reservados.
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleTutorialModal()" class="hover:text-white transition-colors flex items-center gap-1 text-purple-400 hover:text-purple-300">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <span>Tutorial do App</span>
+                </button>
+                <span class="text-gray-600">•</span>
+                <button onclick="toggleSettingsModal()" class="hover:text-white transition-colors flex items-center gap-1 text-indigo-400 hover:text-indigo-300">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>Opções</span>
+                </button>
+            </div>
+        </div>
+    </footer>
+
     <!-- SETTINGS MODAL -->
     <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="glass-card bg-[#111625] rounded-2xl max-w-md w-full p-6 border border-white/10 shadow-2xl relative">
@@ -778,6 +817,102 @@
 
             <div class="mt-6 flex justify-end">
                 <button onclick="toggleSettingsModal()" class="btn-primary px-5 py-2 rounded-xl text-xs font-semibold text-white shadow-md">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TUTORIAL MODAL -->
+    <div id="tutorialModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card bg-[#111625] rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-white/10 shadow-2xl relative max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-white/10 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-white">Guia & Tutorial do 4U Code Optimizer</h3>
+                        <p class="text-xs text-gray-400">Como aproveitar ao máximo todas as ferramentas e recursos</p>
+                    </div>
+                </div>
+                <button onclick="toggleTutorialModal()" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center text-sm font-bold transition-all">✕</button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="overflow-y-auto py-4 space-y-3 text-xs pr-1">
+                <!-- Step 1 -->
+                <div class="p-3.5 rounded-2xl bg-gray-950/50 border border-white/5 flex gap-3.5">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">1</div>
+                    <div>
+                        <div class="font-semibold text-gray-200 text-sm">Entrada Rápida & Presets em 1 Clique</div>
+                        <p class="text-gray-400 text-xs mt-1 leading-relaxed">
+                            Cole seu código no editor ou arraste arquivos do computador. Use a barra de <strong class="text-indigo-400">Presets rápidos</strong> no topo para testar exemplos prontos em JavaScript, CSS, HTML5, JSON, SQL, SVG ou YAML.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="p-3.5 rounded-2xl bg-gray-950/50 border border-white/5 flex gap-3.5">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">2</div>
+                    <div>
+                        <div class="font-semibold text-gray-200 text-sm">Modo Estúdio (1x) vs Multi-Editor (3x)</div>
+                        <p class="text-gray-400 text-xs mt-1 leading-relaxed">
+                            Alterne no cabeçalho entre o <strong class="text-purple-400">Modo Estúdio</strong> (painel focado e amplo, ideal para arquivos extensos) e o <strong class="text-purple-400">Multi-Editor (3x)</strong> (3 colunas simultâneas para processar múltiplos arquivos em lote).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="p-3.5 rounded-2xl bg-gray-950/50 border border-white/5 flex gap-3.5">
+                    <div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">3</div>
+                    <div>
+                        <div class="font-semibold text-gray-200 text-sm">Botão de Ação Dinâmica Inteligente</div>
+                        <p class="text-gray-400 text-xs mt-1 leading-relaxed">
+                            O 3º botão de ação se adapta à linguagem do seu código! Em <span class="text-cyan-300">JavaScript</span> ele limpa logs e debuggers; em <span class="text-cyan-300">CSS</span> otimiza cores e unidades; em <span class="text-cyan-300">JSON/YAML</span> converte formatos; em <span class="text-cyan-300">SVG</span> limpa metadados e encurta paths.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="p-3.5 rounded-2xl bg-gray-950/50 border border-white/5 flex gap-3.5">
+                    <div class="w-7 h-7 rounded-lg bg-pink-500/20 text-pink-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">4</div>
+                    <div>
+                        <div class="font-semibold text-gray-200 text-sm">Comparador Diff & Prévia ao Vivo</div>
+                        <p class="text-gray-400 text-xs mt-1 leading-relaxed">
+                            Na aba <strong class="text-pink-400">Comparador Diff</strong>, veja linha por linha o que mudou (linhas verdes adicionadas e vermelhas removidas). Na aba <strong class="text-cyan-400">Prévia ao Vivo</strong>, visualize em tempo real ícones SVG, páginas HTML ou textos Markdown.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="p-3.5 rounded-2xl bg-gray-950/50 border border-white/5 flex gap-3.5">
+                    <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">5</div>
+                    <div>
+                        <div class="font-semibold text-gray-200 text-sm">Exportação em Lote (.ZIP)</div>
+                        <p class="text-gray-400 text-xs mt-1 leading-relaxed">
+                            No modo Multi-Editor, use o botão <strong class="text-amber-400">"Baixar Todos (.ZIP)"</strong> para empacotar todos os arquivos processados com suas extensões minificadas e um relatório de economia.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex gap-3.5">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">✓</div>
+                    <div>
+                        <div class="font-semibold text-emerald-300 text-sm">Privacidade Total • 100% Local</div>
+                        <p class="text-gray-300 text-xs mt-1 leading-relaxed">
+                            Todo o processamento é feito localmente no seu navegador via Web APIs nativas. Nenhum código de cliente, chave de API ou texto confidencial é transmitido para servidores externos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-4 border-t border-white/10 flex items-center justify-between flex-shrink-0">
+                <span class="text-[11px] text-gray-500 font-mono">4U Code Optimizer • 4u.ia.br</span>
+                <button onclick="toggleTutorialModal()" class="btn-primary px-6 py-2 rounded-xl text-xs font-semibold text-white shadow-md">Entendi, fechar</button>
             </div>
         </div>
     </div>
@@ -1641,32 +1776,119 @@ services:
             }
         }
 
-        // Special Conversion: JSON ⇄ YAML
+        // ==========================================
+        // DYNAMIC CONTEXTUAL ACTIONS
+        // ==========================================
+        function updateContextualActionButton(lang) {
+            const btnText = document.getElementById('studioConvertBtnText');
+            const btnIcon = document.getElementById('studioConvertBtnIcon');
+            const btn = document.getElementById('studioConvertBtn');
+            if (!btn || !btnText) return;
+
+            const iconSvg = {
+                clean: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+                swap: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>',
+                palette: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>',
+                vector: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>',
+                sql: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>',
+                code: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>'
+            };
+
+            const map = {
+                javascript: { text: 'Limpar Logs & Debug', title: 'Remove console.log e debugger mantendo o código formatado', icon: iconSvg.clean },
+                css: { text: 'Otimizar Cores & Unidades', title: 'Encurta cores hexadecimais (#ffffff -> #fff) e colapsa unidades zero', icon: iconSvg.palette },
+                json: { text: 'JSON ➔ YAML', title: 'Converte estrutura JSON para formato YAML legível', icon: iconSvg.swap },
+                yaml: { text: 'YAML ➔ JSON', title: 'Converte arquivo YAML para objeto JSON formatado', icon: iconSvg.swap },
+                svg: { text: 'Otimizar Vetor SVG', title: 'Remove metadados de editores e limpa coordenadas de path', icon: iconSvg.vector },
+                sql: { text: 'Formatar Cláusulas', title: 'Indenta e destaca palavras-chave SQL (SELECT, JOIN, WHERE)', icon: iconSvg.sql },
+                html: { text: 'Limpar Comentários', title: 'Remove comentários HTML preservando scripts e styles', icon: iconSvg.code },
+                xml: { text: 'Indentar XML', title: 'Organiza hierarquia das tags XML com indentação limpa', icon: iconSvg.code },
+                graphql: { text: 'Formatar Query', title: 'Indenta campos e argumentos de queries GraphQL', icon: iconSvg.code },
+                markdown: { text: 'Normalizar Markdown', title: 'Remove espaçamentos redundantes no texto Markdown', icon: iconSvg.code }
+            };
+
+            const action = map[lang] || { text: 'Ação Rápida', title: 'Ação de produtividade para este formato', icon: iconSvg.code };
+            btnText.textContent = action.text;
+            btn.title = action.title;
+            if (btnIcon && action.icon) btnIcon.innerHTML = action.icon;
+        }
+
         function handleSpecialConversion(id) {
-            const input = document.getElementById('inputCode' + id).value.trim();
-            if (!input) { showToast('Insira código para converter!', 'warning'); return; }
+            const input = (id === 1 && state.viewMode === 'studio')
+                ? document.getElementById('inputCode1').value
+                : document.getElementById('inputCodeMulti' + id)?.value || document.getElementById('inputCode' + id).value;
+
+            if (!input.trim()) { showToast('Insira código para aplicar a ação!', 'warning'); return; }
 
             const lang = editors[id].language || detectLanguage(id);
+            let output = '';
+
             try {
-                if (lang === 'json' || input.startsWith('{') || input.startsWith('[')) {
-                    // Convert JSON -> YAML
-                    const parsed = JSON.parse(input);
-                    const yamlStr = jsyaml.dump(parsed, { indent: 2 });
-                    editors[id].rawCode = yamlStr;
-                    displayOutput(id, yamlStr);
-                    updateStats(id, input, yamlStr);
-                    showToast('Convertido JSON ➔ YAML!', 'success');
-                } else {
-                    // Convert YAML -> JSON
-                    const parsed = jsyaml.load(input);
-                    const jsonStr = JSON.stringify(parsed, null, 2);
-                    editors[id].rawCode = jsonStr;
-                    displayOutput(id, jsonStr);
-                    updateStats(id, input, jsonStr);
-                    showToast('Convertido YAML ➔ JSON!', 'success');
+                switch (lang) {
+                    case 'javascript':
+                        output = input.replace(/\bdebugger\s*;?/g, '')
+                                      .replace(/\bconsole\s*\.\s*(log|debug|info|trace|warn|error)\s*\([^()]*(\([^()]*\)[^()]*)*\)\s*;?/g, '');
+                        output = js_beautify(output, { indent_size: 2, space_after_anon_function: true });
+                        showToast('Logs e debugger removidos com sucesso!', 'success');
+                        break;
+                    case 'css':
+                        output = input.replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g, '#$1$2$3')
+                                      .replace(/(:|\s)0(?:px|em|rem|%|in|cm|mm|pc|pt|ex|vh|vw|vmin|vmax)/gi, '$10');
+                        output = css_beautify(output, { indent_size: 2 });
+                        showToast('Cores e unidades CSS otimizadas!', 'success');
+                        break;
+                    case 'json':
+                        const parsedJson = JSON.parse(input);
+                        output = jsyaml.dump(parsedJson, { indent: 2 });
+                        showToast('Convertido de JSON para YAML!', 'success');
+                        break;
+                    case 'yaml':
+                        const parsedYaml = jsyaml.load(input);
+                        output = JSON.stringify(parsedYaml, null, 2);
+                        showToast('Convertido de YAML para JSON!', 'success');
+                        break;
+                    case 'svg':
+                        output = optimizeSVG(input);
+                        output = beautifyXML(output);
+                        showToast('Vetor SVG otimizado e limpo!', 'success');
+                        break;
+                    case 'sql':
+                        output = beautifySQL(input);
+                        showToast('Cláusulas SQL formatadas!', 'success');
+                        break;
+                    case 'html':
+                        output = input.replace(/<!--(?!\s*\[if\s+)[\s\S]*?-->/g, '');
+                        output = html_beautify(output, { indent_size: 2 });
+                        showToast('Comentários HTML removidos!', 'success');
+                        break;
+                    case 'xml':
+                        output = beautifyXML(input);
+                        showToast('XML indentado com sucesso!', 'success');
+                        break;
+                    case 'graphql':
+                        output = beautifyGraphQL(input);
+                        showToast('GraphQL formatado!', 'success');
+                        break;
+                    case 'markdown':
+                        output = input.replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
+                        showToast('Markdown normalizado!', 'success');
+                        break;
+                    default:
+                        output = js_beautify(input, { indent_size: 2 });
+                        showToast('Formatado com sucesso!', 'success');
                 }
+
+                editors[id].originalCode = input;
+                editors[id].rawCode = output;
+                displayOutput(id, output);
+                updateStats(id, input, output);
+                saveStateToStorage();
+
+                if (id === 1 && state.studioTab === 'diff') renderDiff(1);
+                if (id === 1 && state.studioTab === 'preview') renderLivePreview();
+
             } catch (e) {
-                showToast(`Erro na conversão: ${e.message}`, 'error');
+                showToast(`Erro na ação: ${e.message}`, 'error');
             }
         }
 
@@ -1726,13 +1948,8 @@ services:
                 studioBadge.classList.remove('hidden');
                 document.getElementById('fileExtBadge1').textContent = config.ext;
                 
-                // Adjust convert button text if JSON or YAML
-                const convertBtnText = document.getElementById('studioConvertBtnText');
-                if (lang === 'yaml') {
-                    convertBtnText.textContent = 'YAML ➔ JSON';
-                } else {
-                    convertBtnText.textContent = 'JSON ➔ YAML';
-                }
+                // Dynamically update the 3rd contextual button
+                updateContextualActionButton(lang);
             } else {
                 const multiBadge = document.getElementById('detectedLang' + id);
                 if (multiBadge) multiBadge.textContent = `(${config.text})`;
@@ -2351,6 +2568,21 @@ Gerado por 4U Code Optimizer (https://4u.ia.br/app/minifier/)
             const modal = document.getElementById('settingsModal');
             modal.classList.toggle('hidden');
         }
+
+        function toggleTutorialModal() {
+            const modal = document.getElementById('tutorialModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Close modals on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const tut = document.getElementById('tutorialModal');
+                const set = document.getElementById('settingsModal');
+                if (tut && !tut.classList.contains('hidden')) tut.classList.add('hidden');
+                if (set && !set.classList.contains('hidden')) set.classList.add('hidden');
+            }
+        });
 
         function saveOptions() {
             state.options.removeConsole = document.getElementById('optRemoveConsole').checked;

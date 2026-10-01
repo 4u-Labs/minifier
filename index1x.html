@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Minifier & Beautifier</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'><path d='M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Beautify Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-html.min.js"></script>
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        textarea, .code-output, pre code { font-family: 'JetBrains Mono', monospace; }
+        
+        .gradient-bg { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%); }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+        }
+        .btn-download {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.4);
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+        
+        .badge { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .stats-card { transition: all 0.3s ease; }
+        .stats-card:hover { transform: scale(1.05); }
+        .toast { animation: slideIn 0.3s ease; }
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.5);
+            transition: all 0.3s ease;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .drop-zone.dragover { transform: scale(1.02); }
+        /* CODE OUTPUT - SYNTAX HIGHLIGHTED */
+        .code-output-container {
+            background: #282c34;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 320px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .code-output-container pre {
+            margin: 0;
+            padding: 1rem;
+            height: 100%;
+            overflow: auto;
+        }
+        
+        .code-output-container code {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .code-placeholder {
+            color: #5c6370;
+            font-style: italic;
+        }
+        
+        /* HIGHLIGHT.JS THEME - ATOM ONE DARK */
+        .hljs { background: transparent !important; color: #abb2bf !important; }
+        .hljs-keyword { color: #c678dd !important; font-weight: bold; }
+        .hljs-built_in { color: #e6c07b !important; }
+        .hljs-type { color: #e6c07b !important; }
+        .hljs-literal { color: #56b6c2 !important; }
+        .hljs-number { color: #d19a66 !important; }
+        .hljs-string { color: #98c379 !important; }
+        .hljs-symbol { color: #61afef !important; }
+        .hljs-bullet { color: #61afef !important; }
+        .hljs-title { color: #61afef !important; }
+        .hljs-title.function_ { color: #61afef !important; }
+        .hljs-section { color: #e06c75 !important; }
+        .hljs-selector-tag { color: #e06c75 !important; }
+        .hljs-selector-id { color: #61afef !important; }
+        .hljs-selector-class { color: #d19a66 !important; }
+        .hljs-selector-attr { color: #d19a66 !important; }
+        .hljs-selector-pseudo { color: #d19a66 !important; }
+        .hljs-attr { color: #d19a66 !important; }
+        .hljs-attribute { color: #d19a66 !important; }
+        .hljs-variable { color: #e06c75 !important; }
+        .hljs-template-variable { color: #e06c75 !important; }
+        .hljs-class .hljs-title { color: #e6c07b !important; }
+        .hljs-tag { color: #e06c75 !important; }
+        .hljs-name { color: #e06c75 !important; }
+        .hljs-comment { color: #5c6370 !important; font-style: italic; }
+        .hljs-doctag { color: #c678dd !important; }
+        .hljs-meta { color: #61afef !important; }
+        .hljs-meta-keyword { color: #c678dd !important; }
+        .hljs-meta-string { color: #98c379 !important; }
+        .hljs-property { color: #e06c75 !important; }
+        .hljs-function { color: #abb2bf !important; }
+        .hljs-function .hljs-params { color: #abb2bf !important; }
+        .hljs-punctuation { color: #abb2bf !important; }
+        .hljs-operator { color: #56b6c2 !important; }
+        .hljs-regexp { color: #98c379 !important; }
+        .hljs-addition { color: #98c379 !important; background: rgba(152, 195, 121, 0.1); }
+        .hljs-deletion { color: #e06c75 !important; background: rgba(224, 108, 117, 0.1); }
+        .toggle-container { display: flex; align-items: center; gap: 0.5rem; }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #374151;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active { background: #6366f1; }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active::after { transform: translateX(20px); }
+        .highlight-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+        }
+        .highlight-status.active { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .highlight-status.inactive { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        /* Line numbers */
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: 1rem 0.5rem;
+            background: rgba(0,0,0,0.2);
+            text-align: right;
+            user-select: none;
+            color: #5c6370;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <header class="py-8 text-center">
+        <div class="flex items-center justify-center gap-3 mb-2">
+            <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Code Minifier & Beautifier
+            </h1>
+        </div>
+        <p class="text-gray-400 text-lg">Cole seu código, arraste um arquivo ou deixe a mágica acontecer ✨</p>
+    </header>
+    <main class="max-w-7xl mx-auto px-4 pb-12">
+        <div class="flex justify-center mb-6">
+            <div id="languageBadge" class="badge glass-card px-6 py-3 rounded-full flex items-center gap-3">
+                <span class="w-3 h-3 rounded-full bg-gray-500" id="statusDot"></span>
+                <span class="text-gray-300" id="statusText">Aguardando código...</span>
+                <span id="detectedLang" class="font-semibold text-white hidden"></span>
+            </div>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-6">
+            <!-- INPUT CARD -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Código de Entrada
+                    </h2>
+                    <button onclick="clearInput()" class="text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Limpar
+                    </button>
+                </div>
+                <div id="dropZone" class="drop-zone rounded-xl p-6 mb-4 text-center cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.txt" onchange="handleFileSelect(event)">
+                    <svg class="w-12 h-12 mx-auto text-indigo-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-300 font-medium">Arraste um arquivo aqui ou clique para selecionar</p>
+                    <p class="text-gray-500 text-sm mt-1">Suporta: .js, .css, .html, .json, .xml</p>
+                </div>
+                <textarea id="inputCode" class="w-full h-64 bg-gray-900/50 rounded-xl p-4 text-sm text-gray-100 resize-none border border-gray-700" placeholder="Ou cole seu código aqui... (JavaScript, CSS, HTML, JSON ou XML)" oninput="detectLanguage()"></textarea>
+                
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <button onclick="minifyCode()" class="btn-primary px-6 py-3 rounded-xl font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                        Minificar
+                    </button>
+                    <button onclick="beautifyCode()" class="btn-secondary px-6 py-3 rounded-xl font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                        Beautify
+                    </button>
+                    <button onclick="swapCode()" class="glass-card px-4 py-3 rounded-xl font-semibold hover:bg-white/10 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                        Trocar
+                    </button>
+                </div>
+            </div>
+            <!-- OUTPUT CARD - COM SYNTAX HIGHLIGHTING DIRETO -->
+            <div class="glass-card rounded-2xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Resultado
+                        <span id="langBadgeSmall" class="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300 hidden"></span>
+                    </h2>
+                    <div class="flex items-center gap-4">
+                        <div class="toggle-container">
+                            <span class="text-gray-400 text-sm">Cores</span>
+                            <div id="highlightToggle" class="toggle-switch active" onclick="toggleHighlight()"></div>
+                        </div>
+                        <button onclick="copyOutput()" class="text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copiar
+                        </button>
+                    </div>
+                </div>
+                <!-- OUTPUT COM SYNTAX HIGHLIGHTING -->
+                <div class="code-output-container">
+                    <pre><code id="outputCode" class="hljs"><span class="code-placeholder">// O resultado aparecerá aqui com syntax highlighting...</span></code></pre>
+                </div>
+                
+                <!-- Hidden textarea for raw code storage -->
+                <textarea id="rawOutputCode" class="hidden"></textarea>
+                
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <button onclick="downloadCode()" class="btn-download px-6 py-3 rounded-xl font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download
+                    </button>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <span class="text-gray-400 text-sm">Nome:</span>
+                        <input type="text" id="fileName" class="bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white w-40" placeholder="arquivo" value="output">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div class="stats-card glass-card rounded-xl p-4 text-center">
+                <p class="text-gray-400 text-sm mb-1">Tamanho Original</p>
+                <p id="originalSize" class="text-2xl font-bold text-white">0 B</p>
+            </div>
+            <div class="stats-card glass-card rounded-xl p-4 text-center">
+                <p class="text-gray-400 text-sm mb-1">Tamanho Final</p>
+                <p id="finalSize" class="text-2xl font-bold text-white">0 B</p>
+            </div>
+            <div class="stats-card glass-card rounded-xl p-4 text-center">
+                <p class="text-gray-400 text-sm mb-1">Diferença</p>
+                <p id="sizeDiff" class="text-2xl font-bold text-green-400">0%</p>
+            </div>
+            <div class="stats-card glass-card rounded-xl p-4 text-center">
+                <p class="text-gray-400 text-sm mb-1">Linhas</p>
+                <p id="lineCount" class="text-2xl font-bold text-purple-400">0 → 0</p>
+            </div>
+        </div>
+        <div class="glass-card rounded-xl p-4 mt-6">
+            <p class="text-gray-400 text-sm mb-3">Forçar tipo de linguagem (caso a detecção automática falhe):</p>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="setLanguage('javascript')" class="lang-btn px-4 py-2 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors text-sm font-medium">JavaScript</button>
+                <button onclick="setLanguage('css')" class="lang-btn px-4 py-2 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors text-sm font-medium">CSS</button>
+                <button onclick="setLanguage('html')" class="lang-btn px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors text-sm font-medium">HTML</button>
+                <button onclick="setLanguage('json')" class="lang-btn px-4 py-2 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors text-sm font-medium">JSON</button>
+                <button onclick="setLanguage('xml')" class="lang-btn px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors text-sm font-medium">XML</button>
+            </div>
+        </div>
+    </main>
+    <div id="toast" class="fixed bottom-6 right-6 hidden z-50">
+        <div class="toast glass-card px-6 py-3 rounded-xl flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span id="toastMessage" class="text-white">Copiado!</span>
+        </div>
+    </div>
+    <script>
+        let currentLanguage = null;
+        let manualLanguage = null;
+        let highlightEnabled = true;
+        let rawCode = '';
+        const patterns = {
+            html: [/<!DOCTYPE\s+html/i, /<html[\s>]/i, /<head[\s>]/i, /<body[\s>]/i, /<div[\s>]/i, /<span[\s>]/i, /<p[\s>]/i, /<a\s+href/i, /<script[\s>]/i, /<style[\s>]/i],
+            css: [/^\s*[.#@]?[\w-]+\s*\{/m, /:\s*[^;]+;/, /@media\s*\(/, /@keyframes\s+/, /!important/],
+            javascript: [/\bfunction\s+\w+\s*\(/, /\bconst\s+\w+\s*=/, /\blet\s+\w+\s*=/, /\bvar\s+\w+\s*=/, /=>\s*[{(]/, /\bclass\s+\w+/, /\bconsole\./, /\bdocument\./, /\bwindow\./],
+            json: [/^\s*\{[\s\S]*"[\w-]+":\s*/, /^\s*\[\s*\{/],
+            xml: [/^<\?xml\s+version/i, /<[\w-]+\s+xmlns/, /<!\[CDATA\[/]
+        };
+        const languageColors = {
+            javascript: { bg: 'bg-yellow-500', text: 'JavaScript', ext: '.js', hljs: 'javascript' },
+            css: { bg: 'bg-blue-500', text: 'CSS', ext: '.css', hljs: 'css' },
+            html: { bg: 'bg-orange-500', text: 'HTML', ext: '.html', hljs: 'xml' },
+            json: { bg: 'bg-green-500', text: 'JSON', ext: '.json', hljs: 'json' },
+            xml: { bg: 'bg-purple-500', text: 'XML', ext: '.xml', hljs: 'xml' }
+        };
+        const extensionToLanguage = {'.js': 'javascript', '.mjs': 'javascript', '.css': 'css', '.html': 'html', '.htm': 'html', '.json': 'json', '.xml': 'xml', '.svg': 'xml', '.txt': null};
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropZone = document.getElementById('dropZone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+            ['dragenter', 'dragover'].forEach(function(eventName) {
+                dropZone.addEventListener(eventName, function() { dropZone.classList.add('dragover'); }, false);
+            });
+            ['dragleave', 'drop'].forEach(function(eventName) {
+                dropZone.addEventListener(eventName, function() { dropZone.classList.remove('dragover'); }, false);
+            });
+            dropZone.addEventListener('drop', handleDrop, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        function handleDrop(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        }
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) handleFile(files[0]);
+        }
+        function handleFile(file) {
+            const fileName = file.name;
+            const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            document.getElementById('fileName').value = fileName.substring(0, fileName.lastIndexOf('.'));
+            if (extensionToLanguage[ext]) {
+                manualLanguage = extensionToLanguage[ext];
+                currentLanguage = manualLanguage;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('inputCode').value = e.target.result;
+                detectLanguage();
+                showToast('Arquivo "' + fileName + '" carregado!');
+            };
+            reader.onerror = function() { showToast('Erro ao ler o arquivo'); };
+            reader.readAsText(file);
+        }
+        function detectLanguage() {
+            const code = document.getElementById('inputCode').value.trim();
+            if (!code) { updateBadge(null); return null; }
+            if (manualLanguage) { currentLanguage = manualLanguage; updateBadge(currentLanguage); return currentLanguage; }
+            const scores = { html: 0, css: 0, javascript: 0, json: 0, xml: 0 };
+            for (const lang in patterns) {
+                patterns[lang].forEach(function(regex) {
+                    if (regex.test(code)) scores[lang]++;
+                });
+            }
+            try { JSON.parse(code); scores.json += 10; } catch (e) {}
+            let maxScore = 0, detectedLang = 'javascript';
+            for (const lang in scores) {
+                if (scores[lang] > maxScore) { maxScore = scores[lang]; detectedLang = lang; }
+            }
+            currentLanguage = detectedLang;
+            updateBadge(detectedLang);
+            return detectedLang;
+        }
+        function updateBadge(lang) {
+            const dot = document.getElementById('statusDot');
+            const langSpan = document.getElementById('detectedLang');
+            const textSpan = document.getElementById('statusText');
+            const smallBadge = document.getElementById('langBadgeSmall');
+            
+            if (!lang) {
+                dot.className = 'w-3 h-3 rounded-full bg-gray-500';
+                textSpan.textContent = 'Aguardando código...';
+                langSpan.classList.add('hidden');
+                smallBadge.classList.add('hidden');
+                return;
+            }
+            const config = languageColors[lang];
+            dot.className = 'w-3 h-3 rounded-full ' + config.bg;
+            textSpan.textContent = 'Detectado:';
+            langSpan.textContent = config.text;
+            langSpan.classList.remove('hidden');
+            
+            // Update small badge
+            smallBadge.textContent = config.text;
+            smallBadge.classList.remove('hidden');
+        }
+        function setLanguage(lang) {
+            manualLanguage = lang;
+            currentLanguage = lang;
+            updateBadge(lang);
+            // Re-apply highlight if there's code
+            if (rawCode) {
+                displayOutput(rawCode);
+            }
+            showToast('Linguagem definida: ' + languageColors[lang].text);
+        }
+        function minifyCode() {
+            const input = document.getElementById('inputCode').value;
+            if (!input.trim()) { showToast('Cole algum código primeiro!'); return; }
+            const lang = currentLanguage || detectLanguage();
+            let output = '';
+            try {
+                switch (lang) {
+                    case 'javascript': output = minifyJS(input); break;
+                    case 'css': output = minifyCSS(input); break;
+                    case 'html': output = minifyHTML(input); break;
+                    case 'json': output = minifyJSON(input); break;
+                    case 'xml': output = minifyXML(input); break;
+                    default: output = minifyJS(input);
+                }
+                rawCode = output;
+                displayOutput(output);
+                updateStats(input, output);
+                showToast('Código minificado com sucesso!');
+            } catch (e) { showToast('Erro ao minificar: ' + e.message); }
+        }
+        function beautifyCode() {
+            const input = document.getElementById('inputCode').value;
+            if (!input.trim()) { showToast('Cole algum código primeiro!'); return; }
+            const lang = currentLanguage || detectLanguage();
+            let output = '';
+            try {
+                switch (lang) {
+                    case 'javascript': output = js_beautify(input, { indent_size: 2, space_in_empty_paren: true }); break;
+                    case 'css': output = css_beautify(input, { indent_size: 2 }); break;
+                    case 'html': output = html_beautify(input, { indent_size: 2, wrap_line_length: 80 }); break;
+                    case 'json': output = JSON.stringify(JSON.parse(input), null, 2); break;
+                    case 'xml': output = beautifyXML(input); break;
+                    default: output = js_beautify(input, { indent_size: 2 });
+                }
+                rawCode = output;
+                displayOutput(output);
+                updateStats(input, output);
+                showToast('Código formatado com sucesso!');
+            } catch (e) { showToast('Erro ao formatar: ' + e.message); }
+        }
+        // DISPLAY OUTPUT WITH SYNTAX HIGHLIGHTING
+        function displayOutput(code) {
+            const codeEl = document.getElementById('outputCode');
+            document.getElementById('rawOutputCode').value = code;
+            
+            if (!code) {
+                codeEl.innerHTML = '<span class="code-placeholder">// O resultado aparecerá aqui com syntax highlighting...</span>';
+                return;
+            }
+            
+            if (!highlightEnabled || typeof hljs === 'undefined') {
+                // Sem highlight - texto puro
+                codeEl.textContent = code;
+                codeEl.className = '';
+                return;
+            }
+            
+            // Com highlight
+            try {
+                const lang = currentLanguage || 'javascript';
+                const hljsLang = languageColors[lang]?.hljs || 'plaintext';
+                
+                // Tentar highlight com linguagem específica
+                const result = hljs.highlight(code, { 
+                    language: hljsLang, 
+                    ignoreIllegals: true 
+                });
+                
+                codeEl.innerHTML = result.value;
+                codeEl.className = 'hljs language-' + hljsLang;
+            } catch (e) {
+                // Fallback: auto-detect
+                try {
+                    const result = hljs.highlightAuto(code);
+                    codeEl.innerHTML = result.value;
+                    codeEl.className = 'hljs';
+                } catch (e2) {
+                    // Último fallback: texto puro
+                    codeEl.textContent = code;
+                    codeEl.className = '';
+                }
+            }
+        }
+        function toggleHighlight() {
+            const toggle = document.getElementById('highlightToggle');
+            highlightEnabled = !highlightEnabled;
+            toggle.classList.toggle('active', highlightEnabled);
+            
+            // Re-display with/without highlight
+            if (rawCode) {
+                displayOutput(rawCode);
+            }
+            showToast(highlightEnabled ? 'Syntax highlighting ativado!' : 'Syntax highlighting desativado!');
+        }
+        function downloadCode() {
+            const output = rawCode || document.getElementById('rawOutputCode').value;
+            if (!output.trim()) { showToast('Nenhum código para baixar!'); return; }
+            const lang = currentLanguage || 'javascript';
+            const ext = languageColors[lang] ? languageColors[lang].ext : '.txt';
+            const fileName = document.getElementById('fileName').value || 'output';
+            const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName + ext;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Arquivo "' + fileName + ext + '" baixado!');
+        }
+        function minifyJS(code) {
+            return code
+                .replace(/\/\/(?!\/).*$/gm, '')
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([{}();,:])\\s*/g, '$1')
+                .replace(/\s*([+\-*/%=<>!&|]+)\s*/g, '$1')
+                .trim();
+        }
+        function minifyCSS(code) {
+            return code
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([{}:;,>+~])\s*/g, '$1')
+                .replace(/;}/g, '}')
+                .trim();
+        }
+        function minifyHTML(code) {
+            return code
+                .replace(/<!--[\s\S]*?-->/g, '')
+                .replace(/>\s+</g, '><')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+        function minifyJSON(code) { return JSON.stringify(JSON.parse(code)); }
+        function minifyXML(code) {
+            return code
+                .replace(/<!--[\s\S]*?-->/g, '')
+                .replace(/>\s+</g, '><')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+        function beautifyXML(code) {
+            let formatted = '', indent = 0;
+            const lines = code.replace(/>\s*</g, '>\n<').split('\n');
+            lines.forEach(function(line) {
+                line = line.trim();
+                if (!line) return;
+                if (line.match(/^<\/\w/)) indent--;
+                formatted += '  '.repeat(Math.max(0, indent)) + line + '\n';
+                if (line.match(/^<\w[^>]*[^/]>$/) && !line.match(/^<\?/)) indent++;
+            });
+            return formatted.trim();
+        }
+        function updateStats(input, output) {
+            const originalBytes = new Blob([input]).size;
+            const finalBytes = new Blob([output]).size;
+            const diff = ((originalBytes - finalBytes) / originalBytes * 100) || 0;
+            document.getElementById('originalSize').textContent = formatBytes(originalBytes);
+            document.getElementById('finalSize').textContent = formatBytes(finalBytes);
+            const diffEl = document.getElementById('sizeDiff');
+            if (diff > 0) { diffEl.textContent = '-' + diff.toFixed(1) + '%'; diffEl.className = 'text-2xl font-bold text-green-400'; }
+            else if (diff < 0) { diffEl.textContent = '+' + Math.abs(diff).toFixed(1) + '%'; diffEl.className = 'text-2xl font-bold text-red-400'; }
+            else { diffEl.textContent = '0%'; diffEl.className = 'text-2xl font-bold text-gray-400'; }
+            document.getElementById('lineCount').textContent = input.split('\n').length + ' → ' + output.split('\n').length;
+        }
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024, sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        function clearInput() {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('rawOutputCode').value = '';
+            rawCode = '';
+            document.getElementById('outputCode').innerHTML = '<span class="code-placeholder">// O resultado aparecerá aqui com syntax highlighting...</span>';
+            document.getElementById('fileName').value = 'output';
+            manualLanguage = null;
+            currentLanguage = null;
+            updateBadge(null);
+            document.getElementById('originalSize').textContent = '0 B';
+            document.getElementById('finalSize').textContent = '0 B';
+            document.getElementById('sizeDiff').textContent = '0%';
+            document.getElementById('lineCount').textContent = '0 → 0';
+        }
+        function swapCode() {
+            if (rawCode) {
+                document.getElementById('inputCode').value = rawCode;
+                document.getElementById('rawOutputCode').value = '';
+                rawCode = '';
+                document.getElementById('outputCode').innerHTML = '<span class="code-placeholder">// O resultado aparecerá aqui com syntax highlighting...</span>';
+                detectLanguage();
+                showToast('Código trocado!');
+            }
+        }
+        function copyOutput() {
+            const output = rawCode || document.getElementById('rawOutputCode').value;
+            if (output) { 
+                navigator.clipboard.writeText(output); 
+                showToast('Código copiado!'); 
+            }
+        }
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(function() { toast.classList.add('hidden'); }, 2500);
+        }
+    </script>
+</body>
+</html>

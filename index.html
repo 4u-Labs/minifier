@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4U Code Optimizer - Minifier, Beautifier, Diff & SVG Studio</title>
+    <meta name="description" content="Minificador, formatador (beautifier), comparador de diff e otimizador de código multi-linguagem profissional e 100% privado no cliente.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'><path d='M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4'/></svg>">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Beautify Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-html.min.js"></script>
+    
+    <!-- Highlight.js & Languages -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/graphql.min.js"></script>
+    
+    <!-- JSZip for Batch Downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- YAML Parser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        html, body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19 !important;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        
+        textarea, .code-output, pre code, .mono-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Custom Glowing & Glassmorphism styles */
+        .gradient-hero-bg {
+            background-color: #0b0f19 !important;
+            background-image: radial-gradient(circle at 50% -20%, rgba(99, 102, 241, 0.22) 0%, rgba(139, 92, 246, 0.09) 45%, #0b0f19 85%);
+        }
+        
+        .glass-card {
+            background: rgba(18, 24, 38, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-card-hover {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 12px 32px -8px rgba(99, 102, 241, 0.18);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-download:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+        }
+        
+        .btn-all {
+            background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-all:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);
+        }
+        
+        .btn-action-alt {
+            background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-action-alt:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.35);
+            transition: all 0.2s ease;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #818cf8;
+            background: rgba(99, 102, 241, 0.12);
+        }
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
+        }
+        
+        /* Diff Styles */
+        .diff-line {
+            display: flex;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            padding: 0 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .diff-line-num {
+            width: 2.75rem;
+            flex-shrink: 0;
+            color: #64748b;
+            user-select: none;
+            text-align: right;
+            padding-right: 0.75rem;
+        }
+        .diff-line-content {
+            white-space: pre-wrap;
+            word-break: break-all;
+            flex-grow: 1;
+        }
+        .diff-add {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border-left: 3px solid #10b981;
+        }
+        .diff-del {
+            background-color: rgba(244, 63, 94, 0.15);
+            color: #fda4af;
+            border-left: 3px solid #f43f5e;
+        }
+        .diff-same {
+            color: #cbd5e1;
+        }
+        
+        /* Animation utilities */
+        .toast-animate {
+            animation: slideInBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideInBottom {
+            from { transform: translateY(100%) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-hero-bg selection:bg-indigo-500/30 selection:text-white pb-16">
+
+    <!-- Top Navigation / Brand Header -->
+    <header class="border-b border-white/10 backdrop-blur-md sticky top-0 z-40 bg-[#0b0f19]/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/20">
+                    <div class="w-full h-full bg-[#0b0f19] rounded-[10px] flex items-center justify-center">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
+                            4U Code Optimizer
+                        </h1>
+                        <span class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                            v2.5 Pro
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-400">Minificador Seguro • Beautifier • Diff Viewer • SVG & Web Toolkit</p>
+                </div>
+            </div>
+
+            <!-- View Switcher & Quick Tools -->
+            <div class="flex items-center gap-3">
+                <!-- Mode Switcher Pill -->
+                <div class="bg-gray-900/90 p-1 rounded-xl border border-white/10 flex items-center shadow-inner">
+                    <button id="viewModeStudioBtn" onclick="switchViewMode('studio')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Modo Estúdio (1x)</span>
+                    </button>
+                    <button id="viewModeMultiBtn" onclick="switchViewMode('multi')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        </svg>
+                        <span>Multi-Editor (3x)</span>
+                    </button>
+                </div>
+
+                <!-- Settings Toggle Button -->
+                <button onclick="toggleSettingsModal()" class="glass-card px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:text-white hover:border-indigo-500/40 flex items-center gap-1.5 transition-all" title="Opções de Minificação e Formatação">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="hidden sm:inline">Opções</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Preset Chips Bar -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <span class="text-gray-400 font-medium whitespace-nowrap flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Presets rápidos:
+            </span>
+            <button onclick="loadSamplePreset('javascript')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">⚡ JavaScript</button>
+            <button onclick="loadSamplePreset('css')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">🎨 CSS Moderno</button>
+            <button onclick="loadSamplePreset('html')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">🌐 HTML5</button>
+            <button onclick="loadSamplePreset('json')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">📦 JSON API</button>
+            <button onclick="loadSamplePreset('sql')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">🗄️ SQL Query</button>
+            <button onclick="loadSamplePreset('svg')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">📐 SVG Ícone</button>
+            <button onclick="loadSamplePreset('yaml')" class="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/5 transition-all whitespace-nowrap">⚙️ YAML Config</button>
+        </div>
+    </section>
+
+    <!-- Global Actions for Multi Mode (Visible only in multi mode) -->
+    <div id="multiGlobalToolbar" class="max-w-7xl mx-auto px-4 sm:px-6 my-3 hidden">
+        <div class="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/20">
+                    Ações em Lote (3x)
+                </span>
+                <span class="text-xs text-gray-400 hidden md:inline">Processe e exporte múltiplos arquivos simultaneamente</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button onclick="minifyAll()" class="btn-primary px-4 py-2 rounded-xl font-semibold flex items-center gap-1.5 text-xs text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                    Minificar Todos
+                </button>
+                <button onclick="beautifyAll()" class="btn-secondary px-4 py-2 rounded-xl font-semibold flex items-center gap-1.5 text-xs text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                    Beautify Todos
+                </button>
+                <button onclick="downloadAllZip()" class="btn-download px-4 py-2 rounded-xl font-semibold flex items-center gap-1.5 text-xs text-white shadow-lg shadow-amber-500/20" title="Baixa todos os arquivos em um pacote ZIP">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Baixar Todos (.ZIP)
+                </button>
+                <button onclick="clearAll()" class="glass-card px-4 py-2 rounded-xl font-semibold hover:bg-red-500/20 hover:text-red-300 text-gray-300 transition-colors flex items-center gap-1.5 text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Limpar Todos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-2">
+
+        <!-- ============================================== -->
+        <!-- MODE 1: STUDIO FOCUSED MODE (1x EXPANDED)      -->
+        <!-- ============================================== -->
+        <section id="studioModeSection" class="block">
+            <div class="grid lg:grid-cols-2 gap-6">
+
+                <!-- LEFT COLUMN: CODE INPUT -->
+                <div class="glass-card rounded-2xl p-5 flex flex-col glass-card-hover relative">
+                    <!-- Studio Header Bar -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-white/5">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Código de Entrada</span>
+                            <select id="studioLangSelect" onchange="setStudioLanguage(this.value)" class="bg-gray-900/90 border border-white/10 text-white rounded-lg px-2.5 py-1 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="auto">⚡ Auto-detectar</option>
+                                <option value="javascript">JavaScript (JS/TS)</option>
+                                <option value="css">CSS3 / SCSS</option>
+                                <option value="html">HTML5</option>
+                                <option value="json">JSON</option>
+                                <option value="sql">SQL Query</option>
+                                <option value="svg">SVG Vector</option>
+                                <option value="yaml">YAML</option>
+                                <option value="xml">XML</option>
+                                <option value="graphql">GraphQL</option>
+                                <option value="markdown">Markdown</option>
+                            </select>
+                            <span id="studioDetectedBadge" class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hidden"></span>
+                        </div>
+
+                        <!-- Top Quick Actions -->
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="pasteFromClipboard(1)" class="px-2.5 py-1 rounded-lg text-xs bg-white/5 hover:bg-white/10 text-gray-300 flex items-center gap-1 transition-all" title="Colar da área de transferência">
+                                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                <span>Colar</span>
+                            </button>
+                            <button onclick="clearEditor(1)" class="px-2.5 py-1 rounded-lg text-xs bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-red-300 transition-all">Limpar</button>
+                        </div>
+                    </div>
+
+                    <!-- Drop Zone Banner (Compact) -->
+                    <div id="studioDropZone" class="drop-zone rounded-xl p-2.5 mb-3 text-center cursor-pointer transition-all flex items-center justify-center gap-2" onclick="document.getElementById('fileInput1').click()">
+                        <input type="file" id="fileInput1" class="hidden" accept=".js,.ts,.css,.scss,.html,.htm,.json,.xml,.sql,.svg,.yaml,.yml,.gql,.graphql,.md,.txt" onchange="handleFileSelect(1, event)">
+                        <svg class="w-4 h-4 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-xs text-gray-400">Arraste seu arquivo aqui ou <span class="text-indigo-400 underline font-medium">clique para selecionar</span></p>
+                    </div>
+
+                    <!-- Input Code Textarea -->
+                    <div class="relative flex-grow">
+                        <textarea id="inputCode1" class="w-full h-[400px] bg-gray-950/70 rounded-xl p-4 text-xs text-gray-200 resize-none border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none mono-font transition-all leading-relaxed" placeholder="// Cole seu código aqui ou arraste um arquivo...&#10;// Suporta JS, CSS, HTML, JSON, SQL, SVG, YAML, XML e GraphQL." oninput="handleStudioInput()"></textarea>
+                        
+                        <!-- Real-time Syntax / Error Notification Pill -->
+                        <div id="studioSyntaxStatus" class="absolute bottom-3 right-3 text-[11px] font-mono px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 backdrop-blur-md">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Sintaxe Pronta</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons Bar -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
+                        <button onclick="minifyCode(1)" class="btn-primary py-2.5 px-3 rounded-xl font-semibold text-xs text-white flex items-center justify-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                            </svg>
+                            <span>Minificar</span>
+                        </button>
+                        
+                        <button onclick="beautifyCode(1)" class="btn-secondary py-2.5 px-3 rounded-xl font-semibold text-xs text-white flex items-center justify-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                            </svg>
+                            <span>Beautify</span>
+                        </button>
+
+                        <button id="studioConvertBtn" onclick="handleSpecialConversion(1)" class="btn-action-alt py-2.5 px-3 rounded-xl font-semibold text-xs text-white flex items-center justify-center gap-1.5 shadow-md" title="Conversão especial de formato (ex: JSON ⇄ YAML)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            <span id="studioConvertBtnText">JSON ⇄ YAML</span>
+                        </button>
+
+                        <button onclick="openDiffView()" class="glass-card hover:bg-white/10 text-gray-200 py-2.5 px-3 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition-all">
+                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            <span>Ver Diff</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: OUTPUT & ANALYSIS -->
+                <div class="glass-card rounded-2xl p-5 flex flex-col glass-card-hover relative">
+                    <!-- Studio Output Tabs Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-white/5">
+                        <div class="flex items-center gap-1.5 bg-gray-950/60 p-1 rounded-xl border border-white/5">
+                            <button id="tabOutputBtn" onclick="switchStudioTab('output')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition-all">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                </svg>
+                                <span>Resultado</span>
+                            </button>
+                            <button id="tabDiffBtn" onclick="switchStudioTab('diff')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition-all">
+                                <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                </svg>
+                                <span>Comparador Diff</span>
+                            </button>
+                            <button id="tabPreviewBtn" onclick="switchStudioTab('preview')" class="px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition-all">
+                                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <span>Prévia ao Vivo</span>
+                            </button>
+                        </div>
+
+                        <!-- Filename Input -->
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="fileName1" class="bg-gray-900/90 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-gray-200 w-36 outline-none focus:border-indigo-500 font-mono" placeholder="nome_arquivo" value="bundle.min">
+                            <span id="fileExtBadge1" class="text-xs text-gray-500 font-mono">.js</span>
+                        </div>
+                    </div>
+
+                    <!-- Output Containers by Tab -->
+                    <div class="relative flex-grow">
+                        <!-- TAB 1: CODE OUTPUT HIGHLIGHTED -->
+                        <div id="containerOutputTab" class="w-full h-[435px] bg-[#1a1e27] rounded-xl overflow-hidden border border-white/10 relative">
+                            <pre class="w-full h-full p-4 overflow-auto m-0"><code id="outputCode1" class="hljs mono-font text-xs leading-relaxed"><span class="text-gray-500 italic">// O código processado (minificado ou formatado) aparecerá aqui...</span></code></pre>
+                        </div>
+
+                        <!-- TAB 2: DIFF VIEWER -->
+                        <div id="containerDiffTab" class="w-full h-[435px] bg-[#1a1e27] rounded-xl overflow-auto border border-white/10 hidden p-2">
+                            <div id="diffSummaryBadge" class="p-2 mb-2 rounded-lg bg-gray-900/90 border border-white/5 flex items-center justify-between text-xs text-gray-400">
+                                <span>Comparação Linha a Linha (Original ⇄ Processado)</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-emerald-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> <span id="diffAddedCount">0</span> adições</span>
+                                    <span class="text-rose-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> <span id="diffRemovedCount">0</span> remoções</span>
+                                </div>
+                            </div>
+                            <div id="diffContent" class="overflow-x-auto divide-y divide-white/[0.03]">
+                                <div class="p-6 text-center text-xs text-gray-500">Processe algum código para visualizar a comparação de diferenças (Diff).</div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 3: LIVE PREVIEW (For HTML, SVG, Markdown) -->
+                        <div id="containerPreviewTab" class="w-full h-[435px] bg-white rounded-xl overflow-hidden border border-white/10 hidden relative">
+                            <div id="previewEmptyState" class="absolute inset-0 bg-[#1a1e27] flex flex-col items-center justify-center text-xs text-gray-400 gap-2 p-6 text-center">
+                                <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <span>A prévia interativa está disponível para arquivos HTML5, SVG e Markdown.</span>
+                            </div>
+                            <iframe id="livePreviewFrame" class="w-full h-full border-0 bg-white" sandbox="allow-scripts allow-same-origin"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Output Actions Bar -->
+                    <div class="flex items-center gap-2 mt-4">
+                        <button onclick="copyOutput(1)" class="btn-primary py-2.5 px-4 rounded-xl font-semibold text-xs text-white flex-1 flex items-center justify-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            <span>Copiar Código</span>
+                        </button>
+
+                        <button onclick="downloadCode(1)" class="btn-download py-2.5 px-4 rounded-xl font-semibold text-xs text-white flex-1 flex items-center justify-center gap-1.5 shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            <span>Baixar Arquivo</span>
+                        </button>
+
+                        <button onclick="swapCode(1)" class="glass-card hover:bg-white/10 text-gray-300 py-2.5 px-3.5 rounded-xl text-xs flex items-center justify-center gap-1 transition-all" title="Usar resultado como nova entrada">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            <span class="hidden sm:inline">Inverter</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- STUDIO COMPREHENSIVE METRICS DASHBOARD -->
+            <div class="mt-6 glass-card rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <h2 class="text-sm font-bold text-gray-200">Painel de Métricas e Economia de Transferência</h2>
+                    </div>
+                    <span class="text-xs text-gray-500 font-mono">Simulador de Compressão Gzip / Brotli</span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                    <!-- Stat 1: Original Size -->
+                    <div class="bg-gray-950/60 border border-white/5 rounded-xl p-3 text-center">
+                        <div class="text-[11px] font-medium text-gray-400">Tamanho Original</div>
+                        <div id="originalSize1" class="text-base font-bold text-white mt-0.5">0 B</div>
+                        <div id="originalChars1" class="text-[10px] text-gray-500 font-mono">0 caracteres</div>
+                    </div>
+
+                    <!-- Stat 2: Final Size -->
+                    <div class="bg-gray-950/60 border border-white/5 rounded-xl p-3 text-center">
+                        <div class="text-[11px] font-medium text-gray-400">Tamanho Processado</div>
+                        <div id="finalSize1" class="text-base font-bold text-white mt-0.5">0 B</div>
+                        <div id="finalChars1" class="text-[10px] text-gray-500 font-mono">0 caracteres</div>
+                    </div>
+
+                    <!-- Stat 3: Reduction % -->
+                    <div class="bg-gray-950/60 border border-white/5 rounded-xl p-3 text-center">
+                        <div class="text-[11px] font-medium text-gray-400">Economia / Redução</div>
+                        <div id="sizeDiff1" class="text-base font-bold text-gray-400 mt-0.5">0%</div>
+                        <div id="reductionBadge" class="text-[10px] text-gray-500 font-mono">0 bytes salvos</div>
+                    </div>
+
+                    <!-- Stat 4: Line Reduction -->
+                    <div class="bg-gray-950/60 border border-white/5 rounded-xl p-3 text-center">
+                        <div class="text-[11px] font-medium text-gray-400">Linhas de Código</div>
+                        <div id="lineCount1" class="text-base font-bold text-purple-300 mt-0.5">0 → 0</div>
+                        <div id="lineDiffPercent" class="text-[10px] text-gray-500 font-mono">Variação de linhas</div>
+                    </div>
+
+                    <!-- Stat 5: Gzip Simulation -->
+                    <div class="bg-gray-950/60 border border-white/5 rounded-xl p-3 text-center">
+                        <div class="text-[11px] font-medium text-gray-400">Gzip Estimado</div>
+                        <div id="gzipSize1" class="text-base font-bold text-cyan-300 mt-0.5">0 B</div>
+                        <div class="text-[10px] text-gray-500 font-mono">Compressão web</div>
+                    </div>
+
+                    <!-- Stat 6: Network Speed Gain -->
+                    <div class="bg-gray-950/60 border border-white/5 rounded-xl p-3 text-center">
+                        <div class="text-[11px] font-medium text-gray-400">Ganho em Rede Móvel</div>
+                        <div id="networkSavings1" class="text-base font-bold text-emerald-400 mt-0.5">~0 ms</div>
+                        <div class="text-[10px] text-gray-500 font-mono">Conexão 4G/3G</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================== -->
+        <!-- MODE 2: MULTI-EDITOR 3-COLUMN MODE             -->
+        <!-- ============================================== -->
+        <section id="multiModeSection" class="hidden">
+            <div class="grid lg:grid-cols-3 gap-6">
+
+                <!-- MULTI EDITOR 1 -->
+                <div class="editor-card glass-card rounded-2xl p-5 relative glass-card-hover">
+                    <div class="absolute -top-3 left-5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-md">1</div>
+                    
+                    <div class="flex items-center justify-between mb-3 mt-2">
+                        <div class="flex items-center gap-2">
+                            <select id="langSelect1" onchange="setMultiLanguage(1, this.value)" class="bg-gray-900 border border-white/10 text-white text-xs rounded-lg px-2 py-1 outline-none">
+                                <option value="auto">Auto</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="css">CSS</option>
+                                <option value="html">HTML</option>
+                                <option value="json">JSON</option>
+                                <option value="sql">SQL</option>
+                                <option value="svg">SVG</option>
+                                <option value="yaml">YAML</option>
+                                <option value="xml">XML</option>
+                            </select>
+                            <span id="detectedLang1" class="text-[11px] font-mono text-indigo-400"></span>
+                        </div>
+                        <button onclick="clearEditor(1)" class="text-gray-400 hover:text-red-400 text-xs transition-colors">Limpar</button>
+                    </div>
+
+                    <div id="dropZone1" class="drop-zone rounded-lg p-2.5 mb-3 text-center cursor-pointer text-xs flex items-center justify-center gap-2" onclick="document.getElementById('fileInputMulti1').click()">
+                        <input type="file" id="fileInputMulti1" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.sql,.svg,.yaml,.yml" onchange="handleFileSelect(1, event)">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <span class="text-gray-400">Arraste ou clique</span>
+                    </div>
+
+                    <textarea id="inputCodeMulti1" class="w-full h-36 bg-gray-950/70 rounded-xl p-3 text-xs text-gray-200 resize-none border border-white/10 outline-none focus:border-indigo-500 mono-font mb-3" placeholder="Cole seu código 1 aqui..." oninput="syncMultiInput(1)"></textarea>
+
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="minifyCode(1)" class="btn-primary flex-1 py-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 text-white">Minificar</button>
+                        <button onclick="beautifyCode(1)" class="btn-secondary flex-1 py-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 text-white">Beautify</button>
+                    </div>
+
+                    <div class="code-output-container bg-[#1a1e27] rounded-xl border border-white/10 h-44 overflow-hidden mb-3">
+                        <pre class="p-3 h-full overflow-auto m-0"><code id="outputCodeMulti1" class="hljs mono-font text-xs"><span class="text-gray-500 italic">// Resultado 1...</span></code></pre>
+                    </div>
+
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="copyOutput(1)" class="glass-card flex-1 py-2 rounded-xl text-xs hover:bg-white/10 transition-colors flex items-center justify-center gap-1">Copiar</button>
+                        <button onclick="downloadCode(1)" class="btn-download flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1 text-white">Download</button>
+                        <button onclick="swapCode(1)" class="glass-card px-3 py-2 rounded-xl text-xs hover:bg-white/10 transition-colors" title="Inverter">⇄</button>
+                    </div>
+
+                    <input type="text" id="fileNameMulti1" class="w-full bg-gray-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white mb-3 font-mono" placeholder="Nome do arquivo" value="output1" onchange="syncFilename(1, this.value)">
+
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Original</div><div class="font-bold text-white" id="multiOriginalSize1">0 B</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Final</div><div class="font-bold text-white" id="multiFinalSize1">0 B</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Diferença</div><div class="font-bold text-green-400" id="multiSizeDiff1">0%</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Linhas</div><div class="font-bold text-purple-400" id="multiLineCount1">0 → 0</div></div>
+                    </div>
+                </div>
+
+                <!-- MULTI EDITOR 2 -->
+                <div class="editor-card glass-card rounded-2xl p-5 relative glass-card-hover">
+                    <div class="absolute -top-3 left-5 bg-gradient-to-r from-purple-500 to-pink-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-md">2</div>
+                    
+                    <div class="flex items-center justify-between mb-3 mt-2">
+                        <div class="flex items-center gap-2">
+                            <select id="langSelect2" onchange="setMultiLanguage(2, this.value)" class="bg-gray-900 border border-white/10 text-white text-xs rounded-lg px-2 py-1 outline-none">
+                                <option value="auto">Auto</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="css">CSS</option>
+                                <option value="html">HTML</option>
+                                <option value="json">JSON</option>
+                                <option value="sql">SQL</option>
+                                <option value="svg">SVG</option>
+                                <option value="yaml">YAML</option>
+                                <option value="xml">XML</option>
+                            </select>
+                            <span id="detectedLang2" class="text-[11px] font-mono text-indigo-400"></span>
+                        </div>
+                        <button onclick="clearEditor(2)" class="text-gray-400 hover:text-red-400 text-xs transition-colors">Limpar</button>
+                    </div>
+
+                    <div id="dropZone2" class="drop-zone rounded-lg p-2.5 mb-3 text-center cursor-pointer text-xs flex items-center justify-center gap-2" onclick="document.getElementById('fileInput2').click()">
+                        <input type="file" id="fileInput2" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.sql,.svg,.yaml,.yml" onchange="handleFileSelect(2, event)">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <span class="text-gray-400">Arraste ou clique</span>
+                    </div>
+
+                    <textarea id="inputCode2" class="w-full h-36 bg-gray-950/70 rounded-xl p-3 text-xs text-gray-200 resize-none border border-white/10 outline-none focus:border-indigo-500 mono-font mb-3" placeholder="Cole seu código 2 aqui..." oninput="detectLanguage(2)"></textarea>
+
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="minifyCode(2)" class="btn-primary flex-1 py-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 text-white">Minificar</button>
+                        <button onclick="beautifyCode(2)" class="btn-secondary flex-1 py-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 text-white">Beautify</button>
+                    </div>
+
+                    <div class="code-output-container bg-[#1a1e27] rounded-xl border border-white/10 h-44 overflow-hidden mb-3">
+                        <pre class="p-3 h-full overflow-auto m-0"><code id="outputCode2" class="hljs mono-font text-xs"><span class="text-gray-500 italic">// Resultado 2...</span></code></pre>
+                    </div>
+
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="copyOutput(2)" class="glass-card flex-1 py-2 rounded-xl text-xs hover:bg-white/10 transition-colors flex items-center justify-center gap-1">Copiar</button>
+                        <button onclick="downloadCode(2)" class="btn-download flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1 text-white">Download</button>
+                        <button onclick="swapCode(2)" class="glass-card px-3 py-2 rounded-xl text-xs hover:bg-white/10 transition-colors" title="Inverter">⇄</button>
+                    </div>
+
+                    <input type="text" id="fileName2" class="w-full bg-gray-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white mb-3 font-mono" placeholder="Nome do arquivo" value="output2">
+
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Original</div><div class="font-bold text-white" id="originalSize2">0 B</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Final</div><div class="font-bold text-white" id="finalSize2">0 B</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Diferença</div><div class="font-bold text-green-400" id="sizeDiff2">0%</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Linhas</div><div class="font-bold text-purple-400" id="lineCount2">0 → 0</div></div>
+                    </div>
+                </div>
+
+                <!-- MULTI EDITOR 3 -->
+                <div class="editor-card glass-card rounded-2xl p-5 relative glass-card-hover">
+                    <div class="absolute -top-3 left-5 bg-gradient-to-r from-pink-500 to-rose-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-md">3</div>
+                    
+                    <div class="flex items-center justify-between mb-3 mt-2">
+                        <div class="flex items-center gap-2">
+                            <select id="langSelect3" onchange="setMultiLanguage(3, this.value)" class="bg-gray-900 border border-white/10 text-white text-xs rounded-lg px-2 py-1 outline-none">
+                                <option value="auto">Auto</option>
+                                <option value="javascript">JavaScript</option>
+                                <option value="css">CSS</option>
+                                <option value="html">HTML</option>
+                                <option value="json">JSON</option>
+                                <option value="sql">SQL</option>
+                                <option value="svg">SVG</option>
+                                <option value="yaml">YAML</option>
+                                <option value="xml">XML</option>
+                            </select>
+                            <span id="detectedLang3" class="text-[11px] font-mono text-indigo-400"></span>
+                        </div>
+                        <button onclick="clearEditor(3)" class="text-gray-400 hover:text-red-400 text-xs transition-colors">Limpar</button>
+                    </div>
+
+                    <div id="dropZone3" class="drop-zone rounded-lg p-2.5 mb-3 text-center cursor-pointer text-xs flex items-center justify-center gap-2" onclick="document.getElementById('fileInput3').click()">
+                        <input type="file" id="fileInput3" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.sql,.svg,.yaml,.yml" onchange="handleFileSelect(3, event)">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <span class="text-gray-400">Arraste ou clique</span>
+                    </div>
+
+                    <textarea id="inputCode3" class="w-full h-36 bg-gray-950/70 rounded-xl p-3 text-xs text-gray-200 resize-none border border-white/10 outline-none focus:border-indigo-500 mono-font mb-3" placeholder="Cole seu código 3 aqui..." oninput="detectLanguage(3)"></textarea>
+
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="minifyCode(3)" class="btn-primary flex-1 py-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 text-white">Minificar</button>
+                        <button onclick="beautifyCode(3)" class="btn-secondary flex-1 py-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 text-white">Beautify</button>
+                    </div>
+
+                    <div class="code-output-container bg-[#1a1e27] rounded-xl border border-white/10 h-44 overflow-hidden mb-3">
+                        <pre class="p-3 h-full overflow-auto m-0"><code id="outputCode3" class="hljs mono-font text-xs"><span class="text-gray-500 italic">// Resultado 3...</span></code></pre>
+                    </div>
+
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="copyOutput(3)" class="glass-card flex-1 py-2 rounded-xl text-xs hover:bg-white/10 transition-colors flex items-center justify-center gap-1">Copiar</button>
+                        <button onclick="downloadCode(3)" class="btn-download flex-1 py-2 rounded-xl text-xs flex items-center justify-center gap-1 text-white">Download</button>
+                        <button onclick="swapCode(3)" class="glass-card px-3 py-2 rounded-xl text-xs hover:bg-white/10 transition-colors" title="Inverter">⇄</button>
+                    </div>
+
+                    <input type="text" id="fileName3" class="w-full bg-gray-900 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white mb-3 font-mono" placeholder="Nome do arquivo" value="output3">
+
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Original</div><div class="font-bold text-white" id="originalSize3">0 B</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Final</div><div class="font-bold text-white" id="finalSize3">0 B</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Diferença</div><div class="font-bold text-green-400" id="sizeDiff3">0%</div></div>
+                        <div class="bg-gray-950/60 p-2 rounded-lg text-center"><div class="text-[10px] text-gray-400">Linhas</div><div class="font-bold text-purple-400" id="lineCount3">0 → 0</div></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card bg-[#111625] rounded-2xl max-w-md w-full p-6 border border-white/10 shadow-2xl relative">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    <h3 class="font-bold text-sm text-white">Opções Avançadas do Motor</h3>
+                </div>
+                <button onclick="toggleSettingsModal()" class="text-gray-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <!-- Option: Remove console.log -->
+                <label class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-950/40 hover:bg-gray-950/80 cursor-pointer border border-white/5 transition-all">
+                    <input type="checkbox" id="optRemoveConsole" class="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500" checked onchange="saveOptions()">
+                    <div>
+                        <div class="font-semibold text-gray-200">Remover console.log e debugger</div>
+                        <div class="text-gray-400 text-[11px]">Elimina chamadas de debug e breakpoints do JavaScript em produção.</div>
+                    </div>
+                </label>
+
+                <!-- Option: Keep License Comments -->
+                <label class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-950/40 hover:bg-gray-950/80 cursor-pointer border border-white/5 transition-all">
+                    <input type="checkbox" id="optKeepLicense" class="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500" checked onchange="saveOptions()">
+                    <div>
+                        <div class="font-semibold text-gray-200">Preservar comentários de licença</div>
+                        <div class="text-gray-400 text-[11px]">Mantém cabeçalhos como <code class="text-indigo-400">/*! ... */</code> e tags de autoria MIT/Apache.</div>
+                    </div>
+                </label>
+
+                <!-- Option: Sort JSON Keys -->
+                <label class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-950/40 hover:bg-gray-950/80 cursor-pointer border border-white/5 transition-all">
+                    <input type="checkbox" id="optSortJsonKeys" class="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500" checked onchange="saveOptions()">
+                    <div>
+                        <div class="font-semibold text-gray-200">Ordenar chaves alfabeticamente no JSON</div>
+                        <div class="text-gray-400 text-[11px]">Organiza chaves recursivamente para diff limpo e padronização.</div>
+                    </div>
+                </label>
+
+                <!-- Option: Indentation size -->
+                <div class="p-2.5 rounded-xl bg-gray-950/40 border border-white/5 flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold text-gray-200">Tamanho da Indentação (Beautify)</div>
+                        <div class="text-gray-400 text-[11px]">Espaços utilizados na formatação visual.</div>
+                    </div>
+                    <select id="optIndentSize" class="bg-gray-900 border border-white/10 text-white rounded-lg px-2.5 py-1 text-xs outline-none" onchange="saveOptions()">
+                        <option value="2">2 espaços</option>
+                        <option value="4">4 espaços</option>
+                        <option value="tab">Tab</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="toggleSettingsModal()" class="btn-primary px-5 py-2 rounded-xl text-xs font-semibold text-white shadow-md">Salvar e Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 hidden z-50">
+        <div class="glass-card toast-animate px-5 py-3 rounded-2xl flex items-center gap-3 border border-indigo-500/30 shadow-2xl shadow-indigo-500/20 bg-[#111726]/95">
+            <div id="toastIcon" class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <span id="toastMessage" class="text-xs font-medium text-white">Ação concluída com sucesso!</span>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT ENGINE & LOGIC -->
+    <script>
+        // State management
+        const state = {
+            viewMode: 'studio', // 'studio' | 'multi'
+            studioTab: 'output', // 'output' | 'diff' | 'preview'
+            options: {
+                removeConsole: true,
+                keepLicense: true,
+                sortJsonKeys: true,
+                indentSize: 2
+            }
+        };
+
+        const editors = {
+            1: { language: 'javascript', manualLanguage: null, rawCode: '', originalCode: '' },
+            2: { language: null, manualLanguage: null, rawCode: '', originalCode: '' },
+            3: { language: null, manualLanguage: null, rawCode: '', originalCode: '' }
+        };
+
+        const languageConfig = {
+            javascript: { text: 'JS / TS', ext: '.js', hljs: 'javascript' },
+            css: { text: 'CSS', ext: '.css', hljs: 'css' },
+            html: { text: 'HTML', ext: '.html', hljs: 'xml' },
+            json: { text: 'JSON', ext: '.json', hljs: 'json' },
+            sql: { text: 'SQL', ext: '.sql', hljs: 'sql' },
+            svg: { text: 'SVG', ext: '.svg', hljs: 'xml' },
+            yaml: { text: 'YAML', ext: '.yaml', hljs: 'yaml' },
+            xml: { text: 'XML', ext: '.xml', hljs: 'xml' },
+            graphql: { text: 'GraphQL', ext: '.graphql', hljs: 'graphql' },
+            markdown: { text: 'Markdown', ext: '.md', hljs: 'markdown' }
+        };
+
+        const extensionToLanguage = {
+            '.js': 'javascript', '.mjs': 'javascript', '.ts': 'javascript', '.jsx': 'javascript', '.tsx': 'javascript',
+            '.css': 'css', '.scss': 'css', '.less': 'css',
+            '.html': 'html', '.htm': 'html',
+            '.json': 'json',
+            '.sql': 'sql',
+            '.svg': 'svg',
+            '.yaml': 'yaml', '.yml': 'yaml',
+            '.xml': 'xml',
+            '.graphql': 'graphql', '.gql': 'graphql',
+            '.md': 'markdown'
+        };
+
+        const patterns = {
+            svg: [/^\s*<svg[\s>]/i, /xmlns="http:\/\/www\.w3\.org\/2000\/svg"/i],
+            html: [/<!DOCTYPE\s+html/i, /<html[\s>]/i, /<head[\s>]/i, /<body[\s>]/i, /<div[\s>]/i, /<script[\s>]/i, /<style[\s>]/i],
+            xml: [/^<\?xml\s+version/i, /<[\w-]+\s+xmlns/, /<!\[CDATA\[/],
+            json: [/^\s*\{[\s\S]*"[\w-]+":\s*/, /^\s*\[\s*\{/],
+            yaml: [/^\s*[\w-]+:\s*([^\n]+)?$/m, /^\s*-\s+[\w-]+:/m],
+            sql: [/\bSELECT\b[\s\S]+\bFROM\b/i, /\bINSERT\s+INTO\b/i, /\bUPDATE\s+\w+\s+SET\b/i, /\bDELETE\s+FROM\b/i, /\bCREATE\s+TABLE\b/i],
+            css: [/^\s*[.#@]?[\w-]+\s*\{/m, /:\s*[^;]+;/, /@media\s*\(/, /@keyframes\s+/],
+            javascript: [/\bfunction\s+\w*\s*\(/, /\bconst\s+\w+\s*=/, /\blet\s+\w+\s*=/, /\bvar\s+\w+\s*=/, /=>\s*[{(]/, /\bclass\s+\w+/, /\bimport\s+[\s\S]+from\b/, /\bexport\s+(default|const|let|function)\b/],
+            graphql: [/\bquery\s+\w*\s*\{/, /\bmutation\s+\w*\s*\{/, /\bschema\s*\{/]
+        };
+
+// ==========================================
+        // PRESET SAMPLES
+        // ==========================================
+        const samplePresets = {
+            javascript: `/*!
+ * 4U App Engine v2.5.0
+ * (c) 2026 4U Labs - MIT License
+ */
+import { fetchData } from './api.js';
+
+class AnalyticsTracker {
+    constructor(endpoint) {
+        this.endpoint = endpoint;
+        this.queue = [];
+    }
+
+    async trackEvent(eventName, payload = {}) {
+        console.log('[DEBUG] Tracking event:', eventName);
+        debugger; // Removido automaticamente em produção
+        const timestamp = new Date().toISOString();
+        const data = { eventName, payload, timestamp };
+        this.queue.push(data);
+        return await fetch(this.endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+}
+export default AnalyticsTracker;`,
+
+            css: `/*! 4U Modern Layout System */
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #8b5cf6;
+    --sidebar-width: 280px;
+    --header-height: 70px;
+}
+
+.dashboard-container {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) calc(100% - var(--sidebar-width));
+    min-height: calc(100vh - var(--header-height));
+    margin: 0px 0px 0px 0px;
+    background-color: #ffffff;
+}
+
+.dashboard-card {
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}`,
+
+            html: `<!DOCTYPE html>
+<html lang="pt-BR">
+<!-- Header Section -->
+<head>
+    <meta charset="UTF-8">
+    <title>4U Dashboard</title>
+    <style>
+        .badge { color: #6366f1; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1>Bem-vindo ao 4U Code Optimizer</h1>
+        <pre>
+            // Bloco preformatado preservado
+            const greeting = "Olá Mundo";
+        </pre>
+    </main>
+</body>
+</html>`,
+
+            json: `{
+  "project": "4U Code Optimizer",
+  "version": "2.5.0",
+  "features": ["minification", "beautification", "diff-viewer", "zip-export"],
+  "settings": {
+    "theme": "dark",
+    "removeConsole": true,
+    "gzipSimulation": true,
+    "indentSize": 2
+  },
+  "metrics": {
+    "rating": 5,
+    "activeUsers": 1840
+  }
+}`,
+
+            sql: `-- Relatório financeiro por cliente
+SELECT 
+    c.id AS cliente_id,
+    c.nome AS cliente_nome,
+    COUNT(p.id) AS total_pedidos,
+    SUM(p.valor_total) AS faturamento_acumulado
+FROM clientes c
+LEFT JOIN pedidos p ON p.cliente_id = c.id
+WHERE p.status = 'pago' 
+    AND p.data_pedido >= '2026-01-01'
+GROUP BY c.id, c.nome
+HAVING faturamento_acumulado > 1000
+ORDER BY faturamento_acumulado DESC
+LIMIT 50;`,
+
+            svg: `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" viewBox="0 0 24 24" width="64" height="64">
+    <metadata>
+        <rdf:RDF>Created for 4U Labs</rdf:RDF>
+    </metadata>
+    <path d="M 12 2 L 2 7 L 12 12 L 22 7 Z" fill="#6366f1" />
+    <path d="M 2 17 L 12 22 L 22 17" fill="none" stroke="#8b5cf6" stroke-width="2" />
+    <path d="M 2 12 L 12 17 L 22 12" fill="none" stroke="#a855f7" stroke-width="2" />
+</svg>`,
+
+            yaml: `version: '3.8'
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      NODE_ENV: production
+      APP_NAME: "4U Minifier"
+    volumes:
+      - ./public_html:/usr/share/nginx/html`
+        };
+
+        function loadSamplePreset(presetKey) {
+            const code = samplePresets[presetKey];
+            if (!code) return;
+
+            document.getElementById('inputCode1').value = code;
+            document.getElementById('studioLangSelect').value = presetKey;
+            editors[1].manualLanguage = presetKey;
+            editors[1].language = presetKey;
+            updateLangBadge(1, presetKey);
+            handleStudioInput();
+            
+            // Auto run beautify for clear preview
+            beautifyCode(1);
+            showToast(`Exemplo "${presetKey.toUpperCase()}" carregado!`, 'success');
+        }
+
+
+        function loadSavedSession() {
+            try {
+                const raw = localStorage.getItem('4u_minifier_session');
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session.input1 && session.input1.trim()) {
+                        document.getElementById('inputCode1').value = session.input1;
+                        if (session.lang1) {
+                            editors[1].manualLanguage = session.lang1;
+                            editors[1].language = session.lang1;
+                            document.getElementById('studioLangSelect').value = session.lang1;
+                        }
+                        if (session.output1) {
+                            editors[1].rawCode = session.output1;
+                            displayOutput(1, session.output1);
+                            updateStats(1, session.input1, session.output1);
+                        }
+                        handleStudioInput();
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        // DOM Ready Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedOptions();
+            setupDragAndDrop();
+            
+            const restored = loadSavedSession();
+            if (!restored) {
+                loadSamplePreset('javascript');
+            }
+        });
+
+        // ==========================================
+        // VIEW SWITCHING (STUDIO vs MULTI)
+        // ==========================================
+        function switchViewMode(mode) {
+            state.viewMode = mode;
+            const studioSec = document.getElementById('studioModeSection');
+            const multiSec = document.getElementById('multiModeSection');
+            const multiToolbar = document.getElementById('multiGlobalToolbar');
+            const studioBtn = document.getElementById('viewModeStudioBtn');
+            const multiBtn = document.getElementById('viewModeMultiBtn');
+
+            if (mode === 'studio') {
+                studioSec.classList.remove('hidden');
+                multiSec.classList.add('hidden');
+                multiToolbar.classList.add('hidden');
+                
+                studioBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-md';
+                multiBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white';
+                
+                // Sync Editor 1 into Studio
+                document.getElementById('inputCode1').value = document.getElementById('inputCodeMulti1').value || document.getElementById('inputCode1').value;
+                handleStudioInput();
+            } else {
+                studioSec.classList.add('hidden');
+                multiSec.classList.remove('hidden');
+                multiToolbar.classList.remove('hidden');
+                
+                multiBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-md';
+                studioBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white';
+                
+                // Sync Studio into Multi Editor 1
+                document.getElementById('inputCodeMulti1').value = document.getElementById('inputCode1').value;
+                document.getElementById('outputCodeMulti1').innerHTML = document.getElementById('outputCode1').innerHTML;
+                document.getElementById('fileNameMulti1').value = document.getElementById('fileName1').value;
+                updateMultiStatsFromStudio(1);
+            }
+        }
+
+        function switchStudioTab(tab) {
+            state.studioTab = tab;
+            const tabOutputBtn = document.getElementById('tabOutputBtn');
+            const tabDiffBtn = document.getElementById('tabDiffBtn');
+            const tabPreviewBtn = document.getElementById('tabPreviewBtn');
+
+            const conOutput = document.getElementById('containerOutputTab');
+            const conDiff = document.getElementById('containerDiffTab');
+            const conPreview = document.getElementById('containerPreviewTab');
+
+            [tabOutputBtn, tabDiffBtn, tabPreviewBtn].forEach(b => {
+                b.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white flex items-center gap-1.5 transition-all';
+            });
+            [conOutput, conDiff, conPreview].forEach(c => c.classList.add('hidden'));
+
+            if (tab === 'output') {
+                tabOutputBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+                conOutput.classList.remove('hidden');
+            } else if (tab === 'diff') {
+                tabDiffBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-purple-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+                conDiff.classList.remove('hidden');
+                renderDiff(1);
+            } else if (tab === 'preview') {
+                tabPreviewBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+                conPreview.classList.remove('hidden');
+                renderLivePreview();
+            }
+        }
+
+        function openDiffView() {
+            switchStudioTab('diff');
+        }
+
+        // ==========================================
+        // TOKEN-AWARE SAFE MINIFICATION ENGINES
+        // ==========================================
+        
+        // 1. SAFE JAVASCRIPT MINIFIER
+        function safeMinifyJS(code, options = {}) {
+            const { removeConsole = true, removeDebugger = true, keepLicense = true } = options;
+            let i = 0;
+            const len = code.length;
+            let result = '';
+            
+            function isIdent(ch) { return /[a-zA-Z0-9_$]/.test(ch); }
+            
+            while (i < len) {
+                const c = code[i];
+                const next = code[i + 1];
+                
+                // Single-line comment //
+                if (c === '/' && next === '/') {
+                    const commentStart = i;
+                    let end = code.indexOf('\n', i + 2);
+                    if (end === -1) end = len;
+                    const comment = code.slice(commentStart, end);
+                    if (keepLicense && (comment.includes('/*!') || comment.includes('@license') || comment.includes('@preserve'))) {
+                        result += comment + '\n';
+                    }
+                    i = end;
+                    continue;
+                }
+                
+                // Multi-line comment /*
+                if (c === '/' && next === '*') {
+                    const commentStart = i;
+                    let end = code.indexOf('*/', i + 2);
+                    if (end === -1) end = len;
+                    else end += 2;
+                    const comment = code.slice(commentStart, end);
+                    if (keepLicense && (comment.startsWith('/*!') || comment.includes('@license') || comment.includes('@preserve'))) {
+                        result += comment + '\n';
+                    }
+                    i = end;
+                    continue;
+                }
+                
+                // String literal: "..." or '...'
+                if (c === '"' || c === "'") {
+                    const quote = c;
+                    let str = quote;
+                    i++;
+                    while (i < len) {
+                        const sc = code[i];
+                        str += sc;
+                        if (sc === '\\') {
+                            i++;
+                            if (i < len) str += code[i];
+                        } else if (sc === quote) {
+                            i++;
+                            break;
+                        }
+                        i++;
+                    }
+                    result += str;
+                    continue;
+                }
+                
+                // Template literal: `...`
+                if (c === '`') {
+                    let tpl = '`';
+                    i++;
+                    let depth = 0;
+                    while (i < len) {
+                        const tc = code[i];
+                        tpl += tc;
+                        if (tc === '\\') {
+                            i++;
+                            if (i < len) tpl += code[i];
+                        } else if (tc === '`' && depth === 0) {
+                            i++;
+                            break;
+                        } else if (tc === '$' && code[i + 1] === '{') {
+                            depth++;
+                            tpl += '{';
+                            i++;
+                        } else if (tc === '}' && depth > 0) {
+                            depth--;
+                        }
+                        i++;
+                    }
+                    result += tpl;
+                    continue;
+                }
+                
+                // Regex literal vs Division operator:
+                if (c === '/') {
+                    const prevTrimmed = result.trimEnd();
+                    const lastChar = prevTrimmed[prevTrimmed.length - 1];
+                    const isRegex = !lastChar || /[=([{:;,!?&|~^<>+*/%\\-]/.test(lastChar) || 
+                                    /\b(return|typeof|instanceof|void|delete|throw|case|in|of|yield|await)$/.test(prevTrimmed);
+                    
+                    if (isRegex) {
+                        let rx = '/';
+                        i++;
+                        let inClass = false;
+                        while (i < len) {
+                            const rc = code[i];
+                            rx += rc;
+                            if (rc === '\\') {
+                                i++;
+                                if (i < len) rx += code[i];
+                            } else if (rc === '[') {
+                                inClass = true;
+                            } else if (rc === ']') {
+                                inClass = false;
+                            } else if (rc === '/' && !inClass) {
+                                i++;
+                                while (i < len && /[a-z]/i.test(code[i])) {
+                                    rx += code[i];
+                                    i++;
+                                }
+                                break;
+                            }
+                            i++;
+                        }
+                        result += rx;
+                        continue;
+                    }
+                }
+                
+                // Whitespace handling:
+                if (/\s/.test(c)) {
+                    const prevChar = result[result.length - 1];
+                    let j = i + 1;
+                    while (j < len && /\s/.test(code[j])) j++;
+                    const nextChar = code[j];
+                    
+                    if (prevChar && nextChar && isIdent(prevChar) && isIdent(nextChar)) {
+                        result += ' ';
+                    } else if ((prevChar === '+' && nextChar === '+') || (prevChar === '-' && nextChar === '-')) {
+                        result += ' ';
+                    }
+                    i = j;
+                    continue;
+                }
+                
+                result += c;
+                i++;
+            }
+            
+            if (removeDebugger) {
+                result = result.replace(/\bdebugger\s*;?/g, '');
+            }
+            if (removeConsole) {
+                result = result.replace(/\bconsole\s*\.\s*(log|debug|info|trace|warn|error)\s*\([^()]*(\([^()]*\)[^()]*)*\)\s*;?/g, '');
+            }
+            
+            result = result.replace(/;+/g, ';')
+                           .replace(/\{;/g, '{')
+                           .replace(/;\}/g, '}')
+                           .trim();
+                           
+            return result;
+        }
+
+        // 2. SAFE CSS MINIFIER
+        function safeMinifyCSS(code, options = {}) {
+            const { keepLicense = true } = options;
+            let result = code;
+            
+            // 1. Protect strings first
+            const strings = [];
+            result = result.replace(/(["\'])(?:\\.|[^\\])*?\1/g, m => {
+                strings.push(m);
+                return '___CSS_STR_' + (strings.length - 1) + '___';
+            });
+            
+            // 2. Protect licenses
+            const licenses = [];
+            if (keepLicense) {
+                result = result.replace(/\/\*![\s\S]*?\*\//g, m => {
+                    licenses.push(m);
+                    return '___CSS_LIC_' + (licenses.length - 1) + '___';
+                });
+            }
+            
+            // 3. Remove standard comments
+            result = result.replace(/\/\*[\s\S]*?\*\//g, '');
+            
+            // 4. Protect calc(...) expressions (operators require whitespace!)
+            const calcs = [];
+            result = result.replace(/calc\([^)]+\)/gi, m => {
+                calcs.push(m);
+                return '___CSS_CALC_' + (calcs.length - 1) + '___';
+            });
+            
+            // 5. Minify rules
+            result = result.replace(/\s+/g, ' ');
+            result = result.replace(/\s*([{}:;,>+~])\s*/g, '$1');
+            result = result.replace(/;}/g, '}');
+            result = result.replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g, '#$1$2$3');
+            result = result.replace(/(:|\s)0(?:px|em|rem|%|in|cm|mm|pc|pt|ex|vh|vw|vmin|vmax)/gi, '$10');
+            
+            // 6. Restore
+            result = result.replace(/___CSS_CALC_(\d+)___/g, (_, i) => calcs[i]);
+            result = result.replace(/___CSS_STR_(\d+)___/g, (_, i) => strings[i]);
+            result = result.replace(/___CSS_LIC_(\d+)___/g, (_, i) => licenses[i]);
+            
+            return result.trim();
+        }
+
+        // 3. SAFE HTML MINIFIER
+        function safeMinifyHTML(code) {
+            let result = code;
+            
+            // Protect preformatted tags and code blocks
+            const protectedBlocks = [];
+            const protectTags = ['pre', 'code', 'textarea', 'script', 'style', 'svg'];
+            protectTags.forEach(tag => {
+                const regex = new RegExp('<' + tag + '\\b[^>]*>[\\s\\S]*?<\\/' + tag + '>', 'gi');
+                result = result.replace(regex, m => {
+                    protectedBlocks.push(m);
+                    return '___HTML_BLOCK_' + (protectedBlocks.length - 1) + '___';
+                });
+            });
+            
+            // Remove comments (preserve conditional IE comments)
+            result = result.replace(/<!--(?!\s*\[if\s+)[\s\S]*?-->/g, '');
+            
+            // Collapse spaces between tags
+            result = result.replace(/>\s+</g, '><');
+            
+            // Collapse multiple spaces to single space
+            result = result.replace(/\s{2,}/g, ' ');
+            
+            // Restore protected blocks
+            result = result.replace(/___HTML_BLOCK_(\d+)___/g, (_, i) => protectedBlocks[i]);
+            
+            return result.trim();
+        }
+
+        // 4. JSON MINIFIER & BEAUTIFIER & KEY SORTER
+        function sortJsonKeys(value) {
+            if (Array.isArray(value)) {
+                return value.map(sortJsonKeys);
+            } else if (value !== null && typeof value === 'object') {
+                const sorted = {};
+                Object.keys(value).sort().forEach(k => {
+                    sorted[k] = sortJsonKeys(value[k]);
+                });
+                return sorted;
+            }
+            return value;
+        }
+
+        function minifyJSON(code, options = {}) {
+            let parsed = JSON.parse(code);
+            if (options.sortKeys) {
+                parsed = sortJsonKeys(parsed);
+            }
+            return JSON.stringify(parsed);
+        }
+
+        function beautifyJSON(code, options = {}) {
+            let parsed = JSON.parse(code);
+            if (options.sortKeys) {
+                parsed = sortJsonKeys(parsed);
+            }
+            const indent = options.indentSize === 'tab' ? '\t' : (parseInt(options.indentSize) || 2);
+            return JSON.stringify(parsed, null, indent);
+        }
+
+        // 5. SQL MINIFIER & BEAUTIFIER
+        function minifySQL(sql) {
+            let result = sql;
+            const strings = [];
+            result = result.replace(/(["\'])(?:\\.|[^\\])*?\1/g, m => {
+                strings.push(m);
+                return '___SQL_STR_' + (strings.length - 1) + '___';
+            });
+            result = result.replace(/--.*$/gm, '');
+            result = result.replace(/\/\*[\s\S]*?\*\//g, '');
+            result = result.replace(/\s+/g, ' ');
+            result = result.replace(/\s*([,();])\s*/g, '$1 ');
+            result = result.replace(/\s*([=<>!]+)\s*/g, ' $1 ');
+            result = result.replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+            result = result.replace(/___SQL_STR_(\d+)___/g, (_, i) => strings[i]);
+            return result.trim();
+        }
+
+        function beautifySQL(sql) {
+            let text = minifySQL(sql);
+            const majorKeywords = [
+                'LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'OUTER JOIN', 'CROSS JOIN',
+                'GROUP BY', 'ORDER BY', 'INSERT INTO', 'DELETE FROM', 'UNION ALL',
+                'CREATE TABLE', 'ALTER TABLE', 'DROP TABLE',
+                'SELECT', 'FROM', 'WHERE', 'JOIN', 'HAVING', 'LIMIT', 'OFFSET',
+                'VALUES', 'UPDATE', 'SET', 'UNION'
+            ];
+            const subKeywords = ['AND', 'OR', 'ON', 'WHEN', 'THEN', 'ELSE'];
+            
+            majorKeywords.forEach(kw => {
+                const rx = new RegExp('\\b' + kw.replace(' ', '\\s+') + '\\b', 'gi');
+                text = text.replace(rx, '\n' + kw);
+            });
+            
+            subKeywords.forEach(kw => {
+                const rx = new RegExp('\\b' + kw + '\\b', 'gi');
+                text = text.replace(rx, '\n  ' + kw);
+            });
+            
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            let formatted = '';
+            lines.forEach(line => {
+                const upper = line.toUpperCase();
+                if (subKeywords.some(kw => upper.startsWith(kw))) {
+                    formatted += '  ' + line + '\n';
+                } else if (majorKeywords.some(kw => upper.startsWith(kw))) {
+                    formatted += line + '\n';
+                } else {
+                    formatted += '  ' + line + '\n';
+                }
+            });
+            return formatted.trim();
+        }
+
+        // 6. SVG OPTIMIZER
+        function optimizeSVG(svg) {
+            let result = svg;
+            // Remove XML declaration and DOCTYPE
+            result = result.replace(/<\?xml[\s\S]*?\?>/gi, '');
+            result = result.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
+            // Remove comments
+            result = result.replace(/<!--[\s\S]*?-->/g, '');
+            // Remove metadata tags
+            result = result.replace(/<metadata[\s\S]*?<\/metadata>/gi, '');
+            // Remove vector editor namespaces (Inkscape, Sodipodi, Sketch, Illustrator)
+            result = result.replace(/\s+(xmlns:inkscape|xmlns:sodipodi|xmlns:sketch|xmlns:adobe|inkscape:[a-z-]+|sodipodi:[a-z-]+|sketch:[a-z-]+)="[^"]*"/gi, '');
+            // Collapse tag whitespace
+            result = result.replace(/>\s+</g, '><');
+            // Clean path coordinates
+            result = result.replace(/d="([^"]+)"/g, (m, d) => {
+                const cleanD = d.replace(/\s*([MLHVCSQTAZmlhvcsqtaz])\s*/g, '$1')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+                return `d="${cleanD}"`;
+            });
+            result = result.replace(/\s{2,}/g, ' ');
+            return result.trim();
+        }
+
+        // 7. XML MINIFIER & BEAUTIFIER
+        function minifyXML(code) {
+            return code
+                .replace(/<!--[\s\S]*?-->/g, '')
+                .replace(/>\s+</g, '><')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function beautifyXML(code) {
+            let formatted = '', indent = 0;
+            const lines = code.replace(/>\s*</g, '>\n<').split('\n');
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                if (line.match(/^<\/\w/)) indent--;
+                formatted += '  '.repeat(Math.max(0, indent)) + line + '\n';
+                if (line.match(/^<\w[^>]*[^/]>$/) && !line.match(/^<\?/)) indent++;
+            });
+            return formatted.trim();
+        }
+
+        // 8. GRAPHQL MINIFIER & BEAUTIFIER
+        function minifyGraphQL(code) {
+            return code
+                .replace(/#.*$/gm, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([{}():,$])\s*/g, '$1')
+                .trim();
+        }
+
+        function beautifyGraphQL(code) {
+            const minified = minifyGraphQL(code);
+            let formatted = '';
+            let indent = 0;
+            for (let i = 0; i < minified.length; i++) {
+                const char = minified[i];
+                if (char === '{') {
+                    indent++;
+                    formatted += ' {\n' + '  '.repeat(indent);
+                } else if (char === '}') {
+                    indent = Math.max(0, indent - 1);
+                    formatted += '\n' + '  '.repeat(indent) + '}';
+                } else if (char === '\n') {
+                    formatted += '\n' + '  '.repeat(indent);
+                } else {
+                    formatted += char;
+                }
+            }
+            return formatted.trim();
+        }
+
+        // ==========================================
+        // MAIN PROCESSING DISPATCHER
+        // ==========================================
+        function minifyCode(id) {
+            const input = (id === 1 && state.viewMode === 'studio')
+                ? document.getElementById('inputCode1').value
+                : document.getElementById('inputCodeMulti' + id)?.value || document.getElementById('inputCode' + id).value;
+
+            if (!input.trim()) {
+                showToast('Insira ou cole algum código primeiro!', 'warning');
+                return;
+            }
+
+            const lang = editors[id].language || detectLanguage(id);
+            let output = '';
+
+            try {
+                switch (lang) {
+                    case 'javascript':
+                        output = safeMinifyJS(input, state.options);
+                        break;
+                    case 'css':
+                        output = safeMinifyCSS(input, state.options);
+                        break;
+                    case 'html':
+                        output = safeMinifyHTML(input);
+                        break;
+                    case 'json':
+                        output = minifyJSON(input, { sortKeys: state.options.sortJsonKeys });
+                        break;
+                    case 'sql':
+                        output = minifySQL(input);
+                        break;
+                    case 'svg':
+                        output = optimizeSVG(input);
+                        break;
+                    case 'xml':
+                        output = minifyXML(input);
+                        break;
+                    case 'yaml':
+                        if (window.jsyaml) {
+                            const parsed = jsyaml.load(input);
+                            output = JSON.stringify(parsed);
+                        } else {
+                            output = input.replace(/#.*$/gm, '').replace(/\n\s*\n/g, '\n').trim();
+                        }
+                        break;
+                    case 'graphql':
+                        output = minifyGraphQL(input);
+                        break;
+                    default:
+                        output = safeMinifyJS(input, state.options);
+                }
+
+                editors[id].originalCode = input;
+                editors[id].rawCode = output;
+                displayOutput(id, output);
+                updateStats(id, input, output);
+                saveStateToStorage();
+                showToast(`Editor ${id}: Minificado com sucesso!`, 'success');
+
+                if (id === 1 && state.studioTab === 'diff') renderDiff(1);
+                if (id === 1 && state.studioTab === 'preview') renderLivePreview();
+
+            } catch (e) {
+                showToast(`Erro na minificação: ${e.message}`, 'error');
+            }
+        }
+
+        function beautifyCode(id) {
+            const input = (id === 1 && state.viewMode === 'studio')
+                ? document.getElementById('inputCode1').value
+                : document.getElementById('inputCodeMulti' + id)?.value || document.getElementById('inputCode' + id).value;
+
+            if (!input.trim()) {
+                showToast('Insira ou cole algum código primeiro!', 'warning');
+                return;
+            }
+
+            const lang = editors[id].language || detectLanguage(id);
+            let output = '';
+            const indent_size = state.options.indentSize === 'tab' ? 2 : (parseInt(state.options.indentSize) || 2);
+
+            try {
+                switch (lang) {
+                    case 'javascript':
+                        output = js_beautify(input, { indent_size, space_after_anon_function: true });
+                        break;
+                    case 'css':
+                        output = css_beautify(input, { indent_size });
+                        break;
+                    case 'html':
+                        output = html_beautify(input, { indent_size, wrap_line_length: 100, unformatted: ['pre', 'code'] });
+                        break;
+                    case 'json':
+                        output = beautifyJSON(input, { sortKeys: state.options.sortJsonKeys, indentSize: state.options.indentSize });
+                        break;
+                    case 'sql':
+                        output = beautifySQL(input);
+                        break;
+                    case 'svg':
+                    case 'xml':
+                        output = beautifyXML(input);
+                        break;
+                    case 'yaml':
+                        if (window.jsyaml) {
+                            const parsed = jsyaml.load(input);
+                            output = jsyaml.dump(parsed, { indent: indent_size });
+                        } else {
+                            output = input;
+                        }
+                        break;
+                    case 'graphql':
+                        output = beautifyGraphQL(input);
+                        break;
+                    default:
+                        output = js_beautify(input, { indent_size });
+                }
+
+                editors[id].originalCode = input;
+                editors[id].rawCode = output;
+                displayOutput(id, output);
+                updateStats(id, input, output);
+                saveStateToStorage();
+                showToast(`Editor ${id}: Formatado com sucesso!`, 'success');
+
+                if (id === 1 && state.studioTab === 'diff') renderDiff(1);
+                if (id === 1 && state.studioTab === 'preview') renderLivePreview();
+
+            } catch (e) {
+                showToast(`Erro na formatação: ${e.message}`, 'error');
+            }
+        }
+
+        // Special Conversion: JSON ⇄ YAML
+        function handleSpecialConversion(id) {
+            const input = document.getElementById('inputCode' + id).value.trim();
+            if (!input) { showToast('Insira código para converter!', 'warning'); return; }
+
+            const lang = editors[id].language || detectLanguage(id);
+            try {
+                if (lang === 'json' || input.startsWith('{') || input.startsWith('[')) {
+                    // Convert JSON -> YAML
+                    const parsed = JSON.parse(input);
+                    const yamlStr = jsyaml.dump(parsed, { indent: 2 });
+                    editors[id].rawCode = yamlStr;
+                    displayOutput(id, yamlStr);
+                    updateStats(id, input, yamlStr);
+                    showToast('Convertido JSON ➔ YAML!', 'success');
+                } else {
+                    // Convert YAML -> JSON
+                    const parsed = jsyaml.load(input);
+                    const jsonStr = JSON.stringify(parsed, null, 2);
+                    editors[id].rawCode = jsonStr;
+                    displayOutput(id, jsonStr);
+                    updateStats(id, input, jsonStr);
+                    showToast('Convertido YAML ➔ JSON!', 'success');
+                }
+            } catch (e) {
+                showToast(`Erro na conversão: ${e.message}`, 'error');
+            }
+        }
+
+        // ==========================================
+        // SYNTAX VALIDATION & LANGUAGE DETECTION
+        // ==========================================
+        function detectLanguage(id) {
+            const inputEl = (id === 1 && state.viewMode === 'studio')
+                ? document.getElementById('inputCode1')
+                : (document.getElementById('inputCodeMulti' + id) || document.getElementById('inputCode' + id));
+            
+            const code = inputEl.value.trim();
+            const badgeEl = id === 1 ? document.getElementById('studioDetectedBadge') : document.getElementById('detectedLang' + id);
+
+            if (!code) {
+                editors[id].language = null;
+                if (badgeEl) badgeEl.classList.add('hidden');
+                return 'javascript';
+            }
+
+            if (editors[id].manualLanguage && editors[id].manualLanguage !== 'auto') {
+                editors[id].language = editors[id].manualLanguage;
+                updateLangBadge(id, editors[id].language);
+                return editors[id].language;
+            }
+
+            // Score-based detection
+            const scores = { javascript: 0, css: 0, html: 0, json: 0, sql: 0, svg: 0, yaml: 0, xml: 0, graphql: 0 };
+            
+            // Check direct parsers
+            try { JSON.parse(code); scores.json += 15; } catch (e) {}
+            
+            for (const lang in patterns) {
+                patterns[lang].forEach(rx => {
+                    if (rx.test(code)) scores[lang] = (scores[lang] || 0) + 4;
+                });
+            }
+
+            let maxScore = 0, detected = 'javascript';
+            for (const lang in scores) {
+                if (scores[lang] > maxScore) {
+                    maxScore = scores[lang];
+                    detected = lang;
+                }
+            }
+
+            editors[id].language = detected;
+            updateLangBadge(id, detected);
+            return detected;
+        }
+
+        function updateLangBadge(id, lang) {
+            const config = languageConfig[lang] || { text: lang.toUpperCase(), ext: '.txt' };
+            if (id === 1) {
+                const studioBadge = document.getElementById('studioDetectedBadge');
+                studioBadge.textContent = config.text;
+                studioBadge.classList.remove('hidden');
+                document.getElementById('fileExtBadge1').textContent = config.ext;
+                
+                // Adjust convert button text if JSON or YAML
+                const convertBtnText = document.getElementById('studioConvertBtnText');
+                if (lang === 'yaml') {
+                    convertBtnText.textContent = 'YAML ➔ JSON';
+                } else {
+                    convertBtnText.textContent = 'JSON ➔ YAML';
+                }
+            } else {
+                const multiBadge = document.getElementById('detectedLang' + id);
+                if (multiBadge) multiBadge.textContent = `(${config.text})`;
+            }
+        }
+
+        function validateSyntaxRealtime(id) {
+            const input = document.getElementById('inputCode' + id).value.trim();
+            const statusEl = document.getElementById('studioSyntaxStatus');
+            if (!statusEl) return;
+
+            if (!input) {
+                statusEl.innerHTML = `<span>Sintaxe Pronta</span>`;
+                statusEl.className = 'absolute bottom-3 right-3 text-[11px] font-mono px-2.5 py-1 rounded-lg bg-gray-500/10 text-gray-400 border border-gray-500/20 flex items-center gap-1.5 backdrop-blur-md';
+                return;
+            }
+
+            const lang = editors[id].language || 'javascript';
+            let isValid = true;
+            let errorMsg = '';
+
+            if (lang === 'json') {
+                try {
+                    JSON.parse(input);
+                } catch (e) {
+                    isValid = false;
+                    errorMsg = e.message;
+                }
+            } else if (lang === 'xml' || lang === 'svg') {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(input, 'application/xml');
+                const err = doc.querySelector('parsererror');
+                if (err) {
+                    isValid = false;
+                    errorMsg = 'Erro de tags XML/SVG não balanceadas';
+                }
+            }
+
+            if (isValid) {
+                statusEl.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>✓ Sintaxe Válida</span>`;
+                statusEl.className = 'absolute bottom-3 right-3 text-[11px] font-mono px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 backdrop-blur-md';
+            } else {
+                statusEl.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span class="truncate max-w-[200px]" title="${errorMsg}">⚠ Erro: ${errorMsg}</span>`;
+                statusEl.className = 'absolute bottom-3 right-3 text-[11px] font-mono px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1.5 backdrop-blur-md';
+            }
+        }
+
+        function handleStudioInput() {
+            detectLanguage(1);
+            validateSyntaxRealtime(1);
+        }
+
+        function setStudioLanguage(lang) {
+            if (lang === 'auto') {
+                editors[1].manualLanguage = null;
+                detectLanguage(1);
+            } else {
+                editors[1].manualLanguage = lang;
+                editors[1].language = lang;
+                updateLangBadge(1, lang);
+            }
+            if (editors[1].rawCode) displayOutput(1, editors[1].rawCode);
+        }
+
+        function setMultiLanguage(id, lang) {
+            if (lang === 'auto') {
+                editors[id].manualLanguage = null;
+                detectLanguage(id);
+            } else {
+                editors[id].manualLanguage = lang;
+                editors[id].language = lang;
+                updateLangBadge(id, lang);
+            }
+            if (editors[id].rawCode) displayOutput(id, editors[id].rawCode);
+        }
+
+        // ==========================================
+        // OUTPUT DISPLAY & SYNTAX HIGHLIGHTING
+        // ==========================================
+        function displayOutput(id, code) {
+            const codeEl = id === 1 ? document.getElementById('outputCode1') : document.getElementById('outputCode' + id);
+            const multiCodeEl = id === 1 ? document.getElementById('outputCodeMulti1') : null;
+
+            if (!code) {
+                const placeholder = '<span class="text-gray-500 italic">// Resultado...</span>';
+                if (codeEl) codeEl.innerHTML = placeholder;
+                if (multiCodeEl) multiCodeEl.innerHTML = placeholder;
+                return;
+            }
+
+            try {
+                const lang = editors[id].language || 'javascript';
+                const hljsLang = languageConfig[lang]?.hljs || 'plaintext';
+                const result = hljs.highlight(code, { language: hljsLang, ignoreIllegals: true });
+                
+                if (codeEl) {
+                    codeEl.innerHTML = result.value;
+                    codeEl.className = 'hljs mono-font text-xs leading-relaxed language-' + hljsLang;
+                }
+                if (multiCodeEl) {
+                    multiCodeEl.innerHTML = result.value;
+                    multiCodeEl.className = 'hljs mono-font text-xs leading-relaxed language-' + hljsLang;
+                }
+            } catch (e) {
+                if (codeEl) codeEl.textContent = code;
+                if (multiCodeEl) multiCodeEl.textContent = code;
+            }
+        }
+
+        // ==========================================
+        // STATS & METRICS ENGINE
+        // ==========================================
+        async function updateStats(id, input, output) {
+            const originalBytes = new Blob([input]).size;
+            const finalBytes = new Blob([output]).size;
+            const deltaBytes = originalBytes - finalBytes;
+            const diff = ((deltaBytes) / originalBytes * 100) || 0;
+            
+            const origLines = input ? input.split('\n').length : 0;
+            const finalLines = output ? output.split('\n').length : 0;
+
+            // Estimate gzip size
+            let gzipBytes = Math.round(finalBytes * 0.35);
+            try {
+                if (window.CompressionStream && output) {
+                    const stream = new Blob([output]).stream().pipeThrough(new CompressionStream('gzip'));
+                    const res = await new Response(stream);
+                    const blob = await res.blob();
+                    gzipBytes = blob.size;
+                }
+            } catch (e) {}
+
+            // Estimate mobile network savings (4G = ~15Mbps, 3G = ~750kbps)
+            const ms4G = deltaBytes > 0 ? Math.round((deltaBytes * 8) / (15 * 1024)) : 0;
+            const ms3G = deltaBytes > 0 ? Math.round((deltaBytes * 8) / (0.75 * 1024)) : 0;
+
+            if (id === 1) {
+                document.getElementById('originalSize1').textContent = formatBytes(originalBytes);
+                document.getElementById('originalChars1').textContent = `${input.length.toLocaleString()} caracteres`;
+                
+                document.getElementById('finalSize1').textContent = formatBytes(finalBytes);
+                document.getElementById('finalChars1').textContent = `${output.length.toLocaleString()} caracteres`;
+
+                const diffEl = document.getElementById('sizeDiff1');
+                const badgeEl = document.getElementById('reductionBadge');
+                if (diff > 0) {
+                    diffEl.textContent = `-${diff.toFixed(1)}%`;
+                    diffEl.className = 'text-base font-bold text-emerald-400 mt-0.5';
+                    badgeEl.textContent = `${formatBytes(deltaBytes)} economizados`;
+                    badgeEl.className = 'text-[10px] text-emerald-400 font-mono';
+                } else if (diff < 0) {
+                    diffEl.textContent = `+${Math.abs(diff).toFixed(1)}%`;
+                    diffEl.className = 'text-base font-bold text-rose-400 mt-0.5';
+                    badgeEl.textContent = `${formatBytes(Math.abs(deltaBytes))} adicionados`;
+                    badgeEl.className = 'text-[10px] text-rose-400 font-mono';
+                } else {
+                    diffEl.textContent = '0%';
+                    diffEl.className = 'text-base font-bold text-gray-400 mt-0.5';
+                    badgeEl.textContent = 'Tamanho inalterado';
+                    badgeEl.className = 'text-[10px] text-gray-500 font-mono';
+                }
+
+                document.getElementById('lineCount1').textContent = `${origLines} → ${finalLines}`;
+                const lineDiff = origLines - finalLines;
+                document.getElementById('lineDiffPercent').textContent = lineDiff > 0 ? `-${lineDiff} linhas reduzidas` : `${lineDiff} linhas`;
+
+                document.getElementById('gzipSize1').textContent = formatBytes(gzipBytes);
+                document.getElementById('networkSavings1').textContent = deltaBytes > 0 ? `~${ms4G}ms (4G)` : '0 ms';
+            }
+
+            // Update Multi Cards
+            const origEl = document.getElementById(id === 1 ? 'multiOriginalSize1' : 'originalSize' + id);
+            const finEl = document.getElementById(id === 1 ? 'multiFinalSize1' : 'finalSize' + id);
+            const diffMultiEl = document.getElementById(id === 1 ? 'multiSizeDiff1' : 'sizeDiff' + id);
+            const lineMultiEl = document.getElementById(id === 1 ? 'multiLineCount1' : 'lineCount' + id);
+
+            if (origEl) origEl.textContent = formatBytes(originalBytes);
+            if (finEl) finEl.textContent = formatBytes(finalBytes);
+            if (diffMultiEl) {
+                diffMultiEl.textContent = diff > 0 ? `-${diff.toFixed(1)}%` : (diff < 0 ? `+${Math.abs(diff).toFixed(1)}%` : '0%');
+                diffMultiEl.className = diff > 0 ? 'font-bold text-green-400' : (diff < 0 ? 'font-bold text-red-400' : 'font-bold text-gray-400');
+            }
+            if (lineMultiEl) lineMultiEl.textContent = `${origLines} → ${finalLines}`;
+        }
+
+        function updateMultiStatsFromStudio(id) {
+            const input = document.getElementById('inputCode1').value;
+            const output = editors[id].rawCode;
+            if (input && output) updateStats(id, input, output);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // ==========================================
+        // VISUAL DIFF VIEWER
+        // ==========================================
+        function renderDiff(id) {
+            const original = editors[id].originalCode || document.getElementById('inputCode' + id).value;
+            const modified = editors[id].rawCode;
+            const container = document.getElementById('diffContent');
+
+            if (!original && !modified) {
+                container.innerHTML = '<div class="p-6 text-center text-xs text-gray-500">Insira e processe algum código para ver o comparador visual.</div>';
+                return;
+            }
+
+            const diffLines = computeDiffLines(original, modified);
+            let addedCount = 0;
+            let removedCount = 0;
+
+            let html = '';
+            diffLines.forEach(item => {
+                let badgeClass = 'diff-same';
+                let symbol = ' ';
+                if (item.type === 'add') {
+                    badgeClass = 'diff-add';
+                    symbol = '+';
+                    addedCount++;
+                } else if (item.type === 'del') {
+                    badgeClass = 'diff-del';
+                    symbol = '-';
+                    removedCount++;
+                }
+
+                const lineA = item.lineA !== null ? item.lineA : '';
+                const lineB = item.lineB !== null ? item.lineB : '';
+
+                html += `
+                    <div class="diff-line ${badgeClass}">
+                        <div class="diff-line-num">${lineA}</div>
+                        <div class="diff-line-num">${lineB}</div>
+                        <div class="w-5 flex-shrink-0 text-center select-none font-bold">${symbol}</div>
+                        <div class="diff-line-content">${escapeHtml(item.text)}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('diffAddedCount').textContent = addedCount;
+            document.getElementById('diffRemovedCount').textContent = removedCount;
+        }
+
+        function computeDiffLines(textA, textB) {
+            const linesA = textA.split('\n');
+            const linesB = textB.split('\n');
+            const m = linesA.length;
+            const n = linesB.length;
+
+            if (m > 800 || n > 800) {
+                return [{ type: 'same', lineA: 1, lineB: 1, text: '// Código muito extenso para renderizar diff interativo (> 800 linhas).' }];
+            }
+
+            const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+            for (let i = 0; i < m; i++) {
+                for (let j = 0; j < n; j++) {
+                    if (linesA[i] === linesB[j]) {
+                        dp[i + 1][j + 1] = dp[i][j] + 1;
+                    } else {
+                        dp[i + 1][j + 1] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+                    }
+                }
+            }
+
+            let i = m, j = n;
+            const diff = [];
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && linesA[i - 1] === linesB[j - 1]) {
+                    diff.unshift({ type: 'same', lineA: i, lineB: j, text: linesA[i - 1] });
+                    i--; j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    diff.unshift({ type: 'add', lineA: null, lineB: j, text: linesB[j - 1] });
+                    j--;
+                } else if (i > 0 && (j === 0 || dp[i][j - 1] < dp[i - 1][j])) {
+                    diff.unshift({ type: 'del', lineA: i, lineB: null, text: linesA[i - 1] });
+                    i--;
+                }
+            }
+            return diff;
+        }
+
+        function escapeHtml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ==========================================
+        // LIVE PREVIEW (HTML, SVG, MARKDOWN)
+        // ==========================================
+        function renderLivePreview() {
+            const lang = editors[1].language || 'html';
+            const code = editors[1].rawCode || document.getElementById('inputCode1').value;
+            const iframe = document.getElementById('livePreviewFrame');
+            const emptyState = document.getElementById('previewEmptyState');
+
+            if (!code || (lang !== 'html' && lang !== 'svg' && lang !== 'markdown')) {
+                emptyState.classList.remove('hidden');
+                iframe.srcdoc = '';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            let docContent = '';
+
+            if (lang === 'svg') {
+                docContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;">
+                        ${code}
+                    </body>
+                    </html>
+                `;
+            } else if (lang === 'html') {
+                docContent = code;
+            } else if (lang === 'markdown') {
+                docContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head><style>body{font-family:sans-serif;padding:20px;line-height:1.6;color:#333;}</style></head>
+                    <body><pre style="font-family:inherit;white-space:pre-wrap;">${escapeHtml(code)}</pre></body>
+                    </html>
+                `;
+            }
+
+            iframe.srcdoc = docContent;
+        }
+
+        // ==========================================
+        // FILE DOWNLOAD, COPY & SWAP
+        // ==========================================
+        function copyOutput(id) {
+            const output = editors[id].rawCode;
+            if (!output) { showToast('Nenhum resultado para copiar!', 'warning'); return; }
+            navigator.clipboard.writeText(output).then(() => {
+                showToast(`Código do Editor ${id} copiado!`, 'success');
+            }).catch(() => {
+                showToast('Falha ao acessar área de transferência', 'error');
+            });
+        }
+
+        function downloadCode(id) {
+            const output = editors[id].rawCode;
+            if (!output || !output.trim()) { showToast('Nenhum código para baixar!', 'warning'); return; }
+
+            const lang = editors[id].language || 'javascript';
+            const ext = languageConfig[lang]?.ext || '.txt';
+            const fileNameInput = id === 1 && state.viewMode === 'studio' 
+                ? document.getElementById('fileName1').value 
+                : (document.getElementById('fileNameMulti' + id)?.value || document.getElementById('fileName' + id)?.value || 'output' + id);
+            
+            const fullFileName = fileNameInput.endsWith(ext) ? fileNameInput : (fileNameInput + ext);
+            const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fullFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Download iniciado: ${fullFileName}`, 'success');
+        }
+
+        function swapCode(id) {
+            const out = editors[id].rawCode;
+            if (!out) { showToast('Nenhum resultado para inverter!', 'warning'); return; }
+
+            if (id === 1 && state.viewMode === 'studio') {
+                document.getElementById('inputCode1').value = out;
+            } else {
+                const multiInput = document.getElementById('inputCodeMulti' + id);
+                if (multiInput) multiInput.value = out;
+                document.getElementById('inputCode' + id).value = out;
+            }
+
+            editors[id].rawCode = '';
+            displayOutput(id, '');
+            detectLanguage(id);
+            showToast(`Editor ${id}: Saída invertida para entrada!`, 'success');
+        }
+
+        function clearEditor(id) {
+            if (id === 1 && state.viewMode === 'studio') {
+                document.getElementById('inputCode1').value = '';
+                document.getElementById('fileName1').value = 'bundle.min';
+            }
+            const multiIn = document.getElementById('inputCodeMulti' + id);
+            if (multiIn) multiIn.value = '';
+            const inEl = document.getElementById('inputCode' + id);
+            if (inEl) inEl.value = '';
+
+            displayOutput(id, '');
+            editors[id] = { language: 'javascript', manualLanguage: null, rawCode: '', originalCode: '' };
+            updateStats(id, '', '');
+            
+            if (id === 1) {
+                document.getElementById('studioDetectedBadge').classList.add('hidden');
+                document.getElementById('diffContent').innerHTML = '<div class="p-6 text-center text-xs text-gray-500">Editor limpo.</div>';
+            }
+            showToast(`Editor ${id} limpo!`, 'info');
+        }
+
+        // ==========================================
+        // BATCH ZIP DOWNLOAD (JSZip)
+        // ==========================================
+        async function downloadAllZip() {
+            if (!window.JSZip) {
+                showToast('Biblioteca JSZip carregando...', 'warning');
+                return;
+            }
+
+            const zip = new JSZip();
+            let count = 0;
+            const summary = [];
+
+            [1, 2, 3].forEach(id => {
+                const out = editors[id].rawCode;
+                if (out && out.trim()) {
+                    const rawName = document.getElementById('fileNameMulti' + id)?.value || document.getElementById('fileName' + id)?.value || `output${id}`;
+                    const lang = editors[id].language || 'javascript';
+                    const ext = languageConfig[lang]?.ext || '.txt';
+                    const fileName = rawName.endsWith(ext) ? rawName : (rawName + ext);
+                    
+                    zip.file(fileName, out);
+                    count++;
+                    summary.push(`- ${fileName} (${formatBytes(new Blob([out]).size)}) [${lang.toUpperCase()}]`);
+                }
+            });
+
+            if (count === 0) {
+                showToast('Nenhum código processado nos editores para baixar no ZIP!', 'warning');
+                return;
+            }
+
+            const manifest = `=====================================================
+4U CODE OPTIMIZER - BATCH EXPORT BUNDLE
+=====================================================
+Data: ${new Date().toLocaleString()}
+Total de arquivos exportados: ${count}
+
+Arquivos:
+${summary.join('\n')}
+
+Gerado por 4U Code Optimizer (https://4u.ia.br/app/minifier/)
+=====================================================`;
+
+            zip.file('README_4U_BUNDLE.txt', manifest);
+
+            try {
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `4u-code-bundle-${new Date().toISOString().slice(0, 10)}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast(`ZIP gerado com sucesso (${count} arquivos)!`, 'success');
+            } catch (e) {
+                showToast(`Erro ao gerar ZIP: ${e.message}`, 'error');
+            }
+        }
+
+        function minifyAll() {
+            let processed = 0;
+            [1, 2, 3].forEach(id => {
+                const inVal = document.getElementById('inputCodeMulti' + id)?.value || document.getElementById('inputCode' + id)?.value;
+                if (inVal && inVal.trim()) {
+                    minifyCode(id);
+                    processed++;
+                }
+            });
+            if (processed === 0) showToast('Nenhum código encontrado para minificar!', 'warning');
+        }
+
+        function beautifyAll() {
+            let processed = 0;
+            [1, 2, 3].forEach(id => {
+                const inVal = document.getElementById('inputCodeMulti' + id)?.value || document.getElementById('inputCode' + id)?.value;
+                if (inVal && inVal.trim()) {
+                    beautifyCode(id);
+                    processed++;
+                }
+            });
+            if (processed === 0) showToast('Nenhum código encontrado para formatar!', 'warning');
+        }
+
+        function clearAll() {
+            [1, 2, 3].forEach(id => clearEditor(id));
+            showToast('Todos os editores foram limpos!', 'info');
+        }
+
+        // ==========================================
+        // DRAG & DROP AND CLIPBOARD
+        // ==========================================
+        function setupDragAndDrop() {
+            const studioDrop = document.getElementById('studioDropZone');
+            attachDropZoneEvents(studioDrop, 1);
+
+            [1, 2, 3].forEach(id => {
+                const el = document.getElementById('dropZone' + id);
+                if (el) attachDropZoneEvents(el, id);
+            });
+        }
+
+        function attachDropZoneEvents(dropEl, id) {
+            if (!dropEl) return;
+            ['dragenter', 'dragover'].forEach(name => {
+                dropEl.addEventListener(name, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropEl.classList.add('dragover');
+                });
+            });
+            ['dragleave', 'drop'].forEach(name => {
+                dropEl.addEventListener(name, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropEl.classList.remove('dragover');
+                });
+            });
+            dropEl.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) handleFile(id, files[0]);
+            });
+        }
+
+        function handleFileSelect(id, e) {
+            const files = e.target.files;
+            if (files.length > 0) handleFile(id, files[0]);
+        }
+
+        function handleFile(id, file) {
+            const fileName = file.name;
+            const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            const baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+
+            if (id === 1 && state.viewMode === 'studio') {
+                document.getElementById('fileName1').value = baseName + '.min';
+            }
+            const multiFileName = document.getElementById('fileNameMulti' + id);
+            if (multiFileName) multiFileName.value = baseName + '.min';
+
+            if (extensionToLanguage[ext]) {
+                const targetLang = extensionToLanguage[ext];
+                editors[id].manualLanguage = targetLang;
+                editors[id].language = targetLang;
+                if (id === 1) {
+                    document.getElementById('studioLangSelect').value = targetLang;
+                    updateLangBadge(1, targetLang);
+                }
+                const multiSelect = document.getElementById('langSelect' + id);
+                if (multiSelect) multiSelect.value = targetLang;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                if (id === 1 && state.viewMode === 'studio') {
+                    document.getElementById('inputCode1').value = content;
+                    handleStudioInput();
+                }
+                const multiIn = document.getElementById('inputCodeMulti' + id);
+                if (multiIn) multiIn.value = content;
+                const inEl = document.getElementById('inputCode' + id);
+                if (inEl) inEl.value = content;
+
+                detectLanguage(id);
+                showToast(`Arquivo "${fileName}" carregado!`, 'success');
+            };
+            reader.readAsText(file);
+        }
+
+        async function pasteFromClipboard(id) {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (id === 1 && state.viewMode === 'studio') {
+                    document.getElementById('inputCode1').value = text;
+                    handleStudioInput();
+                } else {
+                    document.getElementById('inputCodeMulti' + id).value = text;
+                    detectLanguage(id);
+                }
+                showToast('Conteúdo colado com sucesso!', 'success');
+            } catch (e) {
+                showToast('Permissão de clipboard não concedida pelo navegador', 'warning');
+            }
+        }
+
+        function syncMultiInput(id) {
+            if (id === 1) {
+                document.getElementById('inputCode1').value = document.getElementById('inputCodeMulti1').value;
+            }
+            detectLanguage(id);
+        }
+
+        function syncFilename(id, val) {
+            if (id === 1) document.getElementById('fileName1').value = val;
+        }
+
+        
+        // ==========================================
+        // OPTIONS MODAL & STORAGE
+        // ==========================================
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function saveOptions() {
+            state.options.removeConsole = document.getElementById('optRemoveConsole').checked;
+            state.options.keepLicense = document.getElementById('optKeepLicense').checked;
+            state.options.sortJsonKeys = document.getElementById('optSortJsonKeys').checked;
+            state.options.indentSize = document.getElementById('optIndentSize').value;
+            localStorage.setItem('4u_minifier_opts', JSON.stringify(state.options));
+            showToast('Preferências salvas!', 'info');
+        }
+
+        function loadSavedOptions() {
+            try {
+                const saved = localStorage.getItem('4u_minifier_opts');
+                if (saved) {
+                    state.options = Object.assign(state.options, JSON.parse(saved));
+                    document.getElementById('optRemoveConsole').checked = state.options.removeConsole;
+                    document.getElementById('optKeepLicense').checked = state.options.keepLicense;
+                    document.getElementById('optSortJsonKeys').checked = state.options.sortJsonKeys;
+                    document.getElementById('optIndentSize').value = state.options.indentSize;
+                }
+            } catch (e) {}
+        }
+
+        function saveStateToStorage() {
+            try {
+                const sessionData = {
+                    input1: document.getElementById('inputCode1').value,
+                    output1: editors[1].rawCode,
+                    lang1: editors[1].language
+                };
+                localStorage.setItem('4u_minifier_session', JSON.stringify(sessionData));
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // TOAST NOTIFICATIONS
+        // ==========================================
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+
+            if (type === 'error') {
+                toastIcon.className = 'w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0';
+                toastIcon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+            } else if (type === 'warning') {
+                toastIcon.className = 'w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0';
+                toastIcon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+            } else {
+                toastIcon.className = 'w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0';
+                toastIcon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            }
+
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

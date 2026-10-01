@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Minifier & Beautifier - Multi Editor</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2'><path d='M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-html.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        textarea, .code-output, pre code { font-family: 'JetBrains Mono', monospace; }
+        
+        .gradient-bg { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%); }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(245, 158, 11, 0.4);
+        }
+        
+        .btn-all {
+            background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(236, 72, 153, 0.4);
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+        
+        .badge { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .stats-card { transition: all 0.3s ease; }
+        .stats-card:hover { transform: scale(1.05); }
+        
+        .toast { animation: slideIn 0.3s ease; }
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .drop-zone {
+            border: 2px dashed rgba(99, 102, 241, 0.5);
+            transition: all 0.3s ease;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .drop-zone.dragover { transform: scale(1.02); }
+        
+        .code-output-container {
+            background: #282c34;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .code-output-container pre {
+            margin: 0;
+            padding: 1rem;
+            height: 100%;
+            overflow: auto;
+        }
+        
+        .code-output-container code {
+            font-size: 0.75rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .code-placeholder {
+            color: #5c6370;
+            font-style: italic;
+        }
+        
+        .hljs { background: transparent !important; color: #abb2bf !important; }
+        .hljs-keyword { color: #c678dd !important; font-weight: bold; }
+        .hljs-built_in { color: #e6c07b !important; }
+        .hljs-string { color: #98c379 !important; }
+        .hljs-number { color: #d19a66 !important; }
+        .hljs-title { color: #61afef !important; }
+        .hljs-tag { color: #e06c75 !important; }
+        .hljs-name { color: #e06c75 !important; }
+        .hljs-attr { color: #d19a66 !important; }
+        .hljs-comment { color: #5c6370 !important; font-style: italic; }
+        
+        .editor-card {
+            transition: all 0.3s ease;
+        }
+        .editor-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        
+        .card-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+        
+        .lang-select {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+        }
+        
+        .lang-select option {
+            background: #1e1b4b;
+            color: white;
+        }
+        
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            font-size: 0.7rem;
+        }
+        
+        .mini-stat {
+            background: rgba(0,0,0,0.2);
+            padding: 0.375rem 0.5rem;
+            border-radius: 0.375rem;
+            text-align: center;
+        }
+        
+        .mini-stat-label { color: #9ca3af; }
+        .mini-stat-value { color: white; font-weight: 600; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <header class="py-6 text-center">
+        <div class="flex items-center justify-center gap-3 mb-2">
+            <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            </svg>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Code Minifier & Beautifier
+            </h1>
+        </div>
+        <p class="text-gray-400">Multi Editor - Processe 3 códigos simultaneamente ✨</p>
+    </header>
+
+    <!-- Global Actions -->
+    <div class="max-w-7xl mx-auto px-4 mb-6">
+        <div class="glass-card rounded-xl p-4 flex flex-wrap items-center justify-center gap-4">
+            <span class="text-gray-300 font-medium">Ações Globais:</span>
+            <button onclick="minifyAll()" class="btn-all px-5 py-2 rounded-lg font-semibold flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+                Minificar Todos
+            </button>
+            <button onclick="beautifyAll()" class="btn-all px-5 py-2 rounded-lg font-semibold flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                </svg>
+                Beautify Todos
+            </button>
+            <button onclick="downloadAll()" class="btn-download px-5 py-2 rounded-lg font-semibold flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download Todos
+            </button>
+            <button onclick="clearAll()" class="glass-card px-5 py-2 rounded-lg font-semibold hover:bg-white/10 transition-colors flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Limpar Todos
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 pb-12">
+        <!-- 3 Editor Cards -->
+        <div class="grid lg:grid-cols-3 gap-6">
+            <!-- Editor 1 -->
+            <div class="editor-card glass-card rounded-2xl p-5 relative">
+                <div class="card-number">1</div>
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-3 mt-2">
+                    <div class="flex items-center gap-2">
+                        <select id="langSelect1" onchange="setLanguage(1, this.value)" class="lang-select">
+                            <option value="auto">Auto</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="css">CSS</option>
+                            <option value="html">HTML</option>
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                        <span id="detectedLang1" class="text-xs text-gray-400"></span>
+                    </div>
+                    <button onclick="clearEditor(1)" class="text-gray-400 hover:text-white text-xs">Limpar</button>
+                </div>
+
+                <!-- Drop Zone -->
+                <div id="dropZone1" class="drop-zone rounded-lg p-3 mb-3 text-center cursor-pointer text-xs" onclick="document.getElementById('fileInput1').click()">
+                    <input type="file" id="fileInput1" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.txt" onchange="handleFileSelect(1, event)">
+                    <svg class="w-6 h-6 mx-auto text-indigo-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-400">Arraste ou clique</p>
+                </div>
+
+                <!-- Input -->
+                <textarea id="inputCode1" class="w-full h-32 bg-gray-900/50 rounded-lg p-3 text-xs text-gray-100 resize-none border border-gray-700 mb-3" placeholder="Cole seu código aqui..." oninput="detectLanguage(1)"></textarea>
+
+                <!-- Buttons -->
+                <div class="flex gap-2 mb-3">
+                    <button onclick="minifyCode(1)" class="btn-primary flex-1 px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                        Minificar
+                    </button>
+                    <button onclick="beautifyCode(1)" class="btn-secondary flex-1 px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                        Beautify
+                    </button>
+                </div>
+
+                <!-- Output -->
+                <div class="code-output-container mb-3">
+                    <pre><code id="outputCode1" class="hljs"><span class="code-placeholder">// Resultado...</span></code></pre>
+                </div>
+
+                <!-- Output Actions -->
+                <div class="flex gap-2 mb-3">
+                    <button onclick="copyOutput(1)" class="glass-card flex-1 px-3 py-2 rounded-lg text-xs hover:bg-white/10 transition-colors flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copiar
+                    </button>
+                    <button onclick="downloadCode(1)" class="btn-download flex-1 px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download
+                    </button>
+                    <button onclick="swapCode(1)" class="glass-card px-3 py-2 rounded-lg text-xs hover:bg-white/10 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Filename -->
+                <input type="text" id="fileName1" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white mb-3" placeholder="Nome do arquivo" value="output1">
+
+                <!-- Mini Stats -->
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Original</div>
+                        <div class="mini-stat-value" id="originalSize1">0 B</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Final</div>
+                        <div class="mini-stat-value" id="finalSize1">0 B</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Diferença</div>
+                        <div class="mini-stat-value text-green-400" id="sizeDiff1">0%</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Linhas</div>
+                        <div class="mini-stat-value text-purple-400" id="lineCount1">0 → 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor 2 -->
+            <div class="editor-card glass-card rounded-2xl p-5 relative">
+                <div class="card-number">2</div>
+                
+                <div class="flex items-center justify-between mb-3 mt-2">
+                    <div class="flex items-center gap-2">
+                        <select id="langSelect2" onchange="setLanguage(2, this.value)" class="lang-select">
+                            <option value="auto">Auto</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="css">CSS</option>
+                            <option value="html">HTML</option>
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                        <span id="detectedLang2" class="text-xs text-gray-400"></span>
+                    </div>
+                    <button onclick="clearEditor(2)" class="text-gray-400 hover:text-white text-xs">Limpar</button>
+                </div>
+
+                <div id="dropZone2" class="drop-zone rounded-lg p-3 mb-3 text-center cursor-pointer text-xs" onclick="document.getElementById('fileInput2').click()">
+                    <input type="file" id="fileInput2" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.txt" onchange="handleFileSelect(2, event)">
+                    <svg class="w-6 h-6 mx-auto text-indigo-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-400">Arraste ou clique</p>
+                </div>
+
+                <textarea id="inputCode2" class="w-full h-32 bg-gray-900/50 rounded-lg p-3 text-xs text-gray-100 resize-none border border-gray-700 mb-3" placeholder="Cole seu código aqui..." oninput="detectLanguage(2)"></textarea>
+
+                <div class="flex gap-2 mb-3">
+                    <button onclick="minifyCode(2)" class="btn-primary flex-1 px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                        Minificar
+                    </button>
+                    <button onclick="beautifyCode(2)" class="btn-secondary flex-1 px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                        Beautify
+                    </button>
+                </div>
+
+                <div class="code-output-container mb-3">
+                    <pre><code id="outputCode2" class="hljs"><span class="code-placeholder">// Resultado...</span></code></pre>
+                </div>
+
+                <div class="flex gap-2 mb-3">
+                    <button onclick="copyOutput(2)" class="glass-card flex-1 px-3 py-2 rounded-lg text-xs hover:bg-white/10 transition-colors flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copiar
+                    </button>
+                    <button onclick="downloadCode(2)" class="btn-download flex-1 px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download
+                    </button>
+                    <button onclick="swapCode(2)" class="glass-card px-3 py-2 rounded-lg text-xs hover:bg-white/10 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <input type="text" id="fileName2" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white mb-3" placeholder="Nome do arquivo" value="output2">
+
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Original</div>
+                        <div class="mini-stat-value" id="originalSize2">0 B</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Final</div>
+                        <div class="mini-stat-value" id="finalSize2">0 B</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Diferença</div>
+                        <div class="mini-stat-value text-green-400" id="sizeDiff2">0%</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Linhas</div>
+                        <div class="mini-stat-value text-purple-400" id="lineCount2">0 → 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor 3 -->
+            <div class="editor-card glass-card rounded-2xl p-5 relative">
+                <div class="card-number">3</div>
+                
+                <div class="flex items-center justify-between mb-3 mt-2">
+                    <div class="flex items-center gap-2">
+                        <select id="langSelect3" onchange="setLanguage(3, this.value)" class="lang-select">
+                            <option value="auto">Auto</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="css">CSS</option>
+                            <option value="html">HTML</option>
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                        <span id="detectedLang3" class="text-xs text-gray-400"></span>
+                    </div>
+                    <button onclick="clearEditor(3)" class="text-gray-400 hover:text-white text-xs">Limpar</button>
+                </div>
+
+                <div id="dropZone3" class="drop-zone rounded-lg p-3 mb-3 text-center cursor-pointer text-xs" onclick="document.getElementById('fileInput3').click()">
+                    <input type="file" id="fileInput3" class="hidden" accept=".js,.css,.html,.htm,.json,.xml,.txt" onchange="handleFileSelect(3, event)">
+                    <svg class="w-6 h-6 mx-auto text-indigo-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-gray-400">Arraste ou clique</p>
+                </div>
+
+                <textarea id="inputCode3" class="w-full h-32 bg-gray-900/50 rounded-lg p-3 text-xs text-gray-100 resize-none border border-gray-700 mb-3" placeholder="Cole seu código aqui..." oninput="detectLanguage(3)"></textarea>
+
+                <div class="flex gap-2 mb-3">
+                    <button onclick="minifyCode(3)" class="btn-primary flex-1 px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                        Minificar
+                    </button>
+                    <button onclick="beautifyCode(3)" class="btn-secondary flex-1 px-3 py-2 rounded-lg font-medium text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                        Beautify
+                    </button>
+                </div>
+
+                <div class="code-output-container mb-3">
+                    <pre><code id="outputCode3" class="hljs"><span class="code-placeholder">// Resultado...</span></code></pre>
+                </div>
+
+                <div class="flex gap-2 mb-3">
+                    <button onclick="copyOutput(3)" class="glass-card flex-1 px-3 py-2 rounded-lg text-xs hover:bg-white/10 transition-colors flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        Copiar
+                    </button>
+                    <button onclick="downloadCode(3)" class="btn-download flex-1 px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download
+                    </button>
+                    <button onclick="swapCode(3)" class="glass-card px-3 py-2 rounded-lg text-xs hover:bg-white/10 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <input type="text" id="fileName3" class="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white mb-3" placeholder="Nome do arquivo" value="output3">
+
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Original</div>
+                        <div class="mini-stat-value" id="originalSize3">0 B</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Final</div>
+                        <div class="mini-stat-value" id="finalSize3">0 B</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Diferença</div>
+                        <div class="mini-stat-value text-green-400" id="sizeDiff3">0%</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="mini-stat-label">Linhas</div>
+                        <div class="mini-stat-value text-purple-400" id="lineCount3">0 → 0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 hidden z-50">
+        <div class="toast glass-card px-6 py-3 rounded-xl flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span id="toastMessage" class="text-white">Copiado!</span>
+        </div>
+    </div>
+
+    <script>
+        // State for each editor
+        const editors = {
+            1: { language: null, manualLanguage: null, rawCode: '' },
+            2: { language: null, manualLanguage: null, rawCode: '' },
+            3: { language: null, manualLanguage: null, rawCode: '' }
+        };
+
+        const patterns = {
+            html: [/<!DOCTYPE\s+html/i, /<html[\s>]/i, /<head[\s>]/i, /<body[\s>]/i, /<div[\s>]/i, /<script[\s>]/i, /<style[\s>]/i],
+            css: [/^\s*[.#@]?[\w-]+\s*\{/m, /:\s*[^;]+;/, /@media\s*\(/, /@keyframes\s+/],
+            javascript: [/\bfunction\s+\w+\s*\(/, /\bconst\s+\w+\s*=/, /\blet\s+\w+\s*=/, /\bvar\s+\w+\s*=/, /=>\s*[{(]/, /\bclass\s+\w+/],
+            json: [/^\s*\{[\s\S]*"[\w-]+":\s*/, /^\s*\[\s*\{/],
+            xml: [/^<\?xml\s+version/i, /<[\w-]+\s+xmlns/, /<!\[CDATA\[/]
+        };
+
+        const languageConfig = {
+            javascript: { text: 'JS', ext: '.js', hljs: 'javascript' },
+            css: { text: 'CSS', ext: '.css', hljs: 'css' },
+            html: { text: 'HTML', ext: '.html', hljs: 'xml' },
+            json: { text: 'JSON', ext: '.json', hljs: 'json' },
+            xml: { text: 'XML', ext: '.xml', hljs: 'xml' }
+        };
+
+        const extensionToLanguage = {
+            '.js': 'javascript', '.mjs': 'javascript', '.css': 'css',
+            '.html': 'html', '.htm': 'html', '.json': 'json', '.xml': 'xml', '.svg': 'xml'
+        };
+
+        // Initialize drag & drop for all editors
+        document.addEventListener('DOMContentLoaded', function() {
+            [1, 2, 3].forEach(id => {
+                const dropZone = document.getElementById('dropZone' + id);
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults, false);
+                });
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+                });
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+                });
+                dropZone.addEventListener('drop', (e) => handleDrop(id, e), false);
+            });
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        function handleDrop(id, e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(id, files[0]);
+        }
+
+        function handleFileSelect(id, e) {
+            const files = e.target.files;
+            if (files.length > 0) handleFile(id, files[0]);
+        }
+
+        function handleFile(id, file) {
+            const fileName = file.name;
+            const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+            document.getElementById('fileName' + id).value = fileName.substring(0, fileName.lastIndexOf('.'));
+            
+            if (extensionToLanguage[ext]) {
+                editors[id].manualLanguage = extensionToLanguage[ext];
+                editors[id].language = extensionToLanguage[ext];
+                document.getElementById('langSelect' + id).value = extensionToLanguage[ext];
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('inputCode' + id).value = e.target.result;
+                detectLanguage(id);
+                showToast('Arquivo carregado no Editor ' + id);
+            };
+            reader.readAsText(file);
+        }
+
+        function detectLanguage(id) {
+            const code = document.getElementById('inputCode' + id).value.trim();
+            const langSpan = document.getElementById('detectedLang' + id);
+            
+            if (!code) { 
+                editors[id].language = null;
+                langSpan.textContent = '';
+                return null; 
+            }
+            
+            if (editors[id].manualLanguage && editors[id].manualLanguage !== 'auto') { 
+                editors[id].language = editors[id].manualLanguage;
+                langSpan.textContent = '(' + languageConfig[editors[id].language].text + ')';
+                return editors[id].language; 
+            }
+            
+            const scores = { html: 0, css: 0, javascript: 0, json: 0, xml: 0 };
+            for (const lang in patterns) {
+                patterns[lang].forEach(regex => { if (regex.test(code)) scores[lang]++; });
+            }
+            try { JSON.parse(code); scores.json += 10; } catch (e) {}
+            
+            let maxScore = 0, detectedLang = 'javascript';
+            for (const lang in scores) {
+                if (scores[lang] > maxScore) { maxScore = scores[lang]; detectedLang = lang; }
+            }
+            
+            editors[id].language = detectedLang;
+            langSpan.textContent = '(' + languageConfig[detectedLang].text + ')';
+            return detectedLang;
+        }
+
+        function setLanguage(id, lang) {
+            if (lang === 'auto') {
+                editors[id].manualLanguage = null;
+                detectLanguage(id);
+            } else {
+                editors[id].manualLanguage = lang;
+                editors[id].language = lang;
+                document.getElementById('detectedLang' + id).textContent = '(' + languageConfig[lang].text + ')';
+            }
+            if (editors[id].rawCode) displayOutput(id, editors[id].rawCode);
+        }
+
+        function minifyCode(id) {
+            const input = document.getElementById('inputCode' + id).value;
+            if (!input.trim()) { showToast('Editor ' + id + ': Cole algum código!'); return; }
+            
+            const lang = editors[id].language || detectLanguage(id);
+            let output = '';
+            
+            try {
+                switch (lang) {
+                    case 'javascript': output = minifyJS(input); break;
+                    case 'css': output = minifyCSS(input); break;
+                    case 'html': output = minifyHTML(input); break;
+                    case 'json': output = minifyJSON(input); break;
+                    case 'xml': output = minifyXML(input); break;
+                    default: output = minifyJS(input);
+                }
+                editors[id].rawCode = output;
+                displayOutput(id, output);
+                updateStats(id, input, output);
+                showToast('Editor ' + id + ': Minificado!');
+            } catch (e) { showToast('Erro: ' + e.message); }
+        }
+
+        function beautifyCode(id) {
+            const input = document.getElementById('inputCode' + id).value;
+            if (!input.trim()) { showToast('Editor ' + id + ': Cole algum código!'); return; }
+            
+            const lang = editors[id].language || detectLanguage(id);
+            let output = '';
+            
+            try {
+                switch (lang) {
+                    case 'javascript': output = js_beautify(input, { indent_size: 2 }); break;
+                    case 'css': output = css_beautify(input, { indent_size: 2 }); break;
+                    case 'html': output = html_beautify(input, { indent_size: 2, wrap_line_length: 80 }); break;
+                    case 'json': output = JSON.stringify(JSON.parse(input), null, 2); break;
+                    case 'xml': output = beautifyXML(input); break;
+                    default: output = js_beautify(input, { indent_size: 2 });
+                }
+                editors[id].rawCode = output;
+                displayOutput(id, output);
+                updateStats(id, input, output);
+                showToast('Editor ' + id + ': Beautified!');
+            } catch (e) { showToast('Erro: ' + e.message); }
+        }
+
+        function displayOutput(id, code) {
+            const codeEl = document.getElementById('outputCode' + id);
+            if (!code) {
+                codeEl.innerHTML = '<span class="code-placeholder">// Resultado...</span>';
+                return;
+            }
+            try {
+                const lang = editors[id].language || 'javascript';
+                const hljsLang = languageConfig[lang]?.hljs || 'plaintext';
+                const result = hljs.highlight(code, { language: hljsLang, ignoreIllegals: true });
+                codeEl.innerHTML = result.value;
+                codeEl.className = 'hljs language-' + hljsLang;
+            } catch (e) {
+                codeEl.textContent = code;
+            }
+        }
+
+        function copyOutput(id) {
+            const output = editors[id].rawCode;
+            if (output) { 
+                navigator.clipboard.writeText(output); 
+                showToast('Editor ' + id + ': Copiado!'); 
+            }
+        }
+
+        function downloadCode(id) {
+            const output = editors[id].rawCode;
+            if (!output.trim()) { showToast('Editor ' + id + ': Nenhum código!'); return; }
+            
+            const lang = editors[id].language || 'javascript';
+            const ext = languageConfig[lang]?.ext || '.txt';
+            const fileName = document.getElementById('fileName' + id).value || 'output' + id;
+            
+            const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName + ext;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Download: ' + fileName + ext);
+        }
+
+        function swapCode(id) {
+            if (editors[id].rawCode) {
+                document.getElementById('inputCode' + id).value = editors[id].rawCode;
+                editors[id].rawCode = '';
+                document.getElementById('outputCode' + id).innerHTML = '<span class="code-placeholder">// Resultado...</span>';
+                detectLanguage(id);
+                showToast('Editor ' + id + ': Trocado!');
+            }
+        }
+
+        function clearEditor(id) {
+            document.getElementById('inputCode' + id).value = '';
+            document.getElementById('outputCode' + id).innerHTML = '<span class="code-placeholder">// Resultado...</span>';
+            document.getElementById('fileName' + id).value = 'output' + id;
+            document.getElementById('langSelect' + id).value = 'auto';
+            document.getElementById('detectedLang' + id).textContent = '';
+            editors[id] = { language: null, manualLanguage: null, rawCode: '' };
+            document.getElementById('originalSize' + id).textContent = '0 B';
+            document.getElementById('finalSize' + id).textContent = '0 B';
+            document.getElementById('sizeDiff' + id).textContent = '0%';
+            document.getElementById('lineCount' + id).textContent = '0 → 0';
+        }
+
+        // Global actions
+        function minifyAll() {
+            let count = 0;
+            [1, 2, 3].forEach(id => {
+                if (document.getElementById('inputCode' + id).value.trim()) {
+                    minifyCode(id);
+                    count++;
+                }
+            });
+            if (count === 0) showToast('Nenhum código para minificar!');
+        }
+
+        function beautifyAll() {
+            let count = 0;
+            [1, 2, 3].forEach(id => {
+                if (document.getElementById('inputCode' + id).value.trim()) {
+                    beautifyCode(id);
+                    count++;
+                }
+            });
+            if (count === 0) showToast('Nenhum código para formatar!');
+        }
+
+        function downloadAll() {
+            let count = 0;
+            [1, 2, 3].forEach(id => {
+                if (editors[id].rawCode) {
+                    downloadCode(id);
+                    count++;
+                }
+            });
+            if (count === 0) showToast('Nenhum código para baixar!');
+        }
+
+        function clearAll() {
+            [1, 2, 3].forEach(id => clearEditor(id));
+            showToast('Todos os editores limpos!');
+        }
+
+        // Minify functions
+        function minifyJS(code) {
+            return code
+                .replace(/\/\/(?!\/).*$/gm, '')
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([{}();,:])\\s*/g, '$1')
+                .replace(/\s*([+\-*/%=<>!&|]+)\s*/g, '$1')
+                .trim();
+        }
+
+        function minifyCSS(code) {
+            return code
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\s*([{}:;,>+~])\s*/g, '$1')
+                .replace(/;}/g, '}')
+                .trim();
+        }
+
+        function minifyHTML(code) {
+            return code
+                .replace(/<!--[\s\S]*?-->/g, '')
+                .replace(/>\s+</g, '><')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function minifyJSON(code) { return JSON.stringify(JSON.parse(code)); }
+
+        function minifyXML(code) {
+            return code
+                .replace(/<!--[\s\S]*?-->/g, '')
+                .replace(/>\s+</g, '><')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function beautifyXML(code) {
+            let formatted = '', indent = 0;
+            const lines = code.replace(/>\s*</g, '>\n<').split('\n');
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+                if (line.match(/^<\/\w/)) indent--;
+                formatted += '  '.repeat(Math.max(0, indent)) + line + '\n';
+                if (line.match(/^<\w[^>]*[^/]>$/) && !line.match(/^<\?/)) indent++;
+            });
+            return formatted.trim();
+        }
+
+        function updateStats(id, input, output) {
+            const originalBytes = new Blob([input]).size;
+            const finalBytes = new Blob([output]).size;
+            const diff = ((originalBytes - finalBytes) / originalBytes * 100) || 0;
+            
+            document.getElementById('originalSize' + id).textContent = formatBytes(originalBytes);
+            document.getElementById('finalSize' + id).textContent = formatBytes(finalBytes);
+            
+            const diffEl = document.getElementById('sizeDiff' + id);
+            if (diff > 0) {
+                diffEl.textContent = '-' + diff.toFixed(1) + '%';
+                diffEl.className = 'mini-stat-value text-green-400';
+            } else if (diff < 0) {
+                diffEl.textContent = '+' + Math.abs(diff).toFixed(1) + '%';
+                diffEl.className = 'mini-stat-value text-red-400';
+            } else {
+                diffEl.textContent = '0%';
+                diffEl.className = 'mini-stat-value text-gray-400';
+            }
+            
+            document.getElementById('lineCount' + id).textContent = 
+                input.split('\n').length + ' → ' + output.split('\n').length;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024, sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2500);
+        }
+    </script>
+</body>
+</html>

@@ -179,7 +179,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen gradient-hero-bg selection:bg-indigo-500/30 selection:text-white pb-16">
+<body class="min-h-screen gradient-hero-bg selection:bg-indigo-500/30 selection:text-white pb-16 overflow-x-hidden">
 
     <!-- Top Navigation / Brand Header -->
     <header class="border-b border-white/10 backdrop-blur-md sticky top-0 z-40 bg-[#0b0f19]/80">
@@ -208,7 +208,7 @@
             </div>
 
             <!-- View Switcher & Quick Tools -->
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 max-w-full">
                 <!-- Mode Switcher Pill -->
                 <div class="bg-gray-900/90 p-1 rounded-xl border border-white/10 flex items-center shadow-inner">
                     <button id="viewModeStudioBtn" onclick="switchViewMode('studio')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all bg-indigo-600 text-white shadow-md">
